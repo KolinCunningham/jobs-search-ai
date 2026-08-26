@@ -1,0 +1,28 @@
+{
+  "name": "Charlotte Example",
+  "location": "Sydney, NSW",
+  "phone": "04xx xxx xxx",
+  "email": "you@example.com",
+  "linkedin": "https://www.linkedin.com/in/your-handle/",
+  "target_industries": [
+    "Technology",
+    "Consulting",
+    "Finance",
+    "Healthcare / Biotech",
+    "Energy",
+    "Construction",
+    "Media",
+    "Retail",
+    "Recruiting",
+    "Real Estate",
+    "Professional Services"
+  ],
+  "target_roles": [
+    "e.g. Marketing Manager",
+    "e.g. Product Designer"
+  ],
+  "locations": ["Sydney", "Remote (Australia)"],
+  "salary_floor": null,
+  "job_boards": ["LinkedIn", "SEEK", "Indeed"],
+  "notes_for_claude": "Describe your voice here: how formal your cover letters should sound, phrases you would never use, anything Claude should mirror from your own past cover letters in profile/cover_letters/."
+}

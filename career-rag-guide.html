@@ -1,0 +1,1248 @@
+<title>Career RAG Pipeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#F1F2F4;
+  --bg-raised:#FFFFFF;
+  --ink:#1C212B;
+  --ink-soft:#586071;
+  --ink-faint:#8891A0;
+  --line:#D8DBE1;
+  --teal:#2B6F66;
+  --teal-tint:#E3EEEC;
+  --teal-ink:#1D4B45;
+  --amber:#A96A1C;
+  --amber-tint:#F6E9D6;
+  --amber-ink:#7A4C13;
+  --danger:#A4342A;
+  --danger-tint:#F5E1DE;
+  --shadow: 0 1px 2px rgba(28,33,43,0.04), 0 8px 24px -12px rgba(28,33,43,0.10);
+  --chart-a:#1B8F7A;
+  --chart-b:#C17F1E;
+  --chart-c:#3F6FA6;
+  --chart-d:#B23B2E;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171C;
+    --bg-raised:#1B1F26;
+    --ink:#E7E9EC;
+    --ink-soft:#A5ACB8;
+    --ink-faint:#6E7684;
+    --line:#2B313B;
+    --teal:#63B5A8;
+    --teal-tint:rgba(99,181,168,0.13);
+    --teal-ink:#8FCCC1;
+    --amber:#E2A85B;
+    --amber-tint:rgba(226,168,91,0.13);
+    --amber-ink:#EFC084;
+    --danger:#E08277;
+    --danger-tint:rgba(224,130,119,0.13);
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    --chart-a:#2E9B85;
+    --chart-b:#B8791F;
+    --chart-c:#4A7FC4;
+    --chart-d:#C4453A;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14171C;
+  --bg-raised:#1B1F26;
+  --ink:#E7E9EC;
+  --ink-soft:#A5ACB8;
+  --ink-faint:#6E7684;
+  --line:#2B313B;
+  --teal:#63B5A8;
+  --teal-tint:rgba(99,181,168,0.13);
+  --teal-ink:#8FCCC1;
+  --amber:#E2A85B;
+  --amber-tint:rgba(226,168,91,0.13);
+  --amber-ink:#EFC084;
+  --danger:#E08277;
+  --danger-tint:rgba(224,130,119,0.13);
+  --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  --chart-a:#2E9B85;
+  --chart-b:#B8791F;
+  --chart-c:#4A7FC4;
+  --chart-d:#C4453A;
+}
+
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"IBM Plex Sans",-apple-system,"Segoe UI",sans-serif;
+  font-size:16px;
+  line-height:1.6;
+}
+::selection{ background:var(--amber-tint); color:var(--ink); }
+
+a{ color:var(--teal-ink); text-decoration-color:var(--line); text-underline-offset:3px; }
+a:hover{ text-decoration-color:currentColor; }
+a:focus-visible, button:focus-visible, summary:focus-visible{
+  outline:2px solid var(--teal); outline-offset:2px; border-radius:2px;
+}
+
+code, .mono{ font-family:"IBM Plex Mono", ui-monospace, Menlo, monospace; }
+
+h1,h2,h3{
+  font-family:"Fraunces", Georgia, serif;
+  font-weight:500;
+  text-wrap:balance;
+  color:var(--ink);
+  margin:0;
+}
+
+.shell{
+  display:grid;
+  grid-template-columns:230px minmax(0,1fr);
+  gap:0 48px;
+  max-width:1180px;
+  margin:0 auto;
+  padding:0 24px 96px;
+}
+@media (max-width:900px){
+  .shell{ grid-template-columns:1fr; }
+}
+
+/* ---- top masthead ---- */
+.masthead{
+  grid-column:1 / -1;
+  padding:56px 0 40px;
+  border-bottom:1px solid var(--line);
+  margin-bottom:40px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+.eyebrow{
+  font-family:"IBM Plex Mono";
+  font-size:12.5px;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:var(--teal-ink);
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.eyebrow::before{
+  content:"";
+  width:7px; height:7px;
+  background:var(--teal);
+  border-radius:1px;
+  transform:rotate(45deg);
+  flex:none;
+}
+h1.title{
+  font-size:clamp(32px,4.4vw,46px);
+  line-height:1.08;
+  max-width:16ch;
+}
+.dek{
+  font-size:17.5px;
+  color:var(--ink-soft);
+  max-width:62ch;
+  margin-top:2px;
+}
+.path-chip{
+  margin-top:10px;
+  display:inline-flex;
+  align-self:flex-start;
+  align-items:center;
+  gap:8px;
+  background:var(--bg-raised);
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:7px 12px;
+  font-family:"IBM Plex Mono";
+  font-size:12.5px;
+  color:var(--ink-soft);
+  box-shadow:var(--shadow);
+}
+
+/* ---- nav rail ---- */
+nav.toc{
+  align-self:start;
+  position:sticky;
+  top:24px;
+  padding-top:4px;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+nav.toc .toc-label{
+  font-family:"IBM Plex Mono";
+  font-size:11px;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:var(--ink-faint);
+  margin-bottom:10px;
+}
+nav.toc a{
+  color:var(--ink-soft);
+  font-size:14px;
+  text-decoration:none;
+  padding:6px 0 6px 14px;
+  border-left:1px solid var(--line);
+  transition:color .15s, border-color .15s;
+}
+nav.toc a:hover{ color:var(--ink); border-color:var(--ink-faint); }
+nav.toc a.step-link{ display:flex; gap:8px; }
+nav.toc a.step-link .n{ font-family:"IBM Plex Mono"; color:var(--ink-faint); font-size:12px; }
+@media (max-width:900px){
+  nav.toc{ position:static; flex-direction:row; flex-wrap:wrap; gap:10px 16px; margin-bottom:36px; }
+  nav.toc a{ border-left:none; padding:0; }
+}
+
+main{ min-width:0; display:flex; flex-direction:column; gap:64px; }
+
+/* ---- build-status stack ---- */
+.stack-status{
+  grid-column:1 / -1;
+  padding-bottom:32px;
+  margin-bottom:8px;
+  border-bottom:1px solid var(--line);
+}
+.stack-status-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  flex-wrap:wrap;
+  gap:6px 16px;
+  margin-bottom:16px;
+}
+.stack-status-head .count{ font-size:14px; color:var(--ink-soft); }
+.stack-status-head .count b{ color:var(--ink); font-variant-numeric:tabular-nums; }
+.stack-track{
+  display:flex;
+  align-items:flex-start;
+  overflow-x:auto;
+  padding:2px 2px 8px;
+}
+.stack-node{
+  flex:none;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+  width:100px;
+  text-align:center;
+}
+.stack-node .node-dot{
+  width:32px; height:32px;
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-family:"IBM Plex Mono"; font-size:12px; font-weight:500;
+  border:2px solid var(--line);
+  color:var(--ink-faint);
+  background:var(--bg-raised);
+  flex:none;
+}
+.stack-node.done .node-dot{
+  background:var(--chart-a);
+  border-color:var(--chart-a);
+  color:#fff;
+}
+.stack-node.active .node-dot{
+  border-color:var(--chart-b);
+  color:var(--chart-b);
+  background:var(--amber-tint);
+}
+.stack-node .node-label{ font-size:11.5px; line-height:1.25; color:var(--ink-faint); }
+.stack-node.done .node-label{ color:var(--ink); }
+.stack-node.active .node-label{ color:var(--ink); }
+.stack-node .node-status{
+  font-family:"IBM Plex Mono"; font-size:9.5px; letter-spacing:0.05em; text-transform:uppercase;
+  color:var(--ink-faint);
+}
+.stack-node.done .node-status{ color:var(--chart-a); }
+.stack-node.active .node-status{ color:var(--chart-b); }
+.stack-connector{
+  flex:1 0 24px;
+  min-width:24px;
+  height:2px;
+  background:var(--line);
+  margin-top:15px;
+}
+.stack-connector.done{ background:var(--chart-a); }
+
+section{ scroll-margin-top:24px; display:flex; flex-direction:column; gap:18px; }
+section > .sec-head{ display:flex; flex-direction:column; gap:6px; max-width:68ch; }
+section h2{ font-size:24px; }
+section p{ margin:0; max-width:66ch; color:var(--ink); }
+section p.lede{ color:var(--ink-soft); font-size:16.5px; }
+
+/* ---- callouts ---- */
+.callout{
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--bg-raised);
+  padding:20px 22px;
+  box-shadow:var(--shadow);
+  display:flex;
+  gap:14px;
+  max-width:74ch;
+}
+.callout .mark{
+  font-family:"IBM Plex Mono";
+  font-size:12px;
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+  flex:none;
+  padding:3px 8px;
+  border-radius:5px;
+  height:fit-content;
+}
+.callout.danger{ border-color:color-mix(in srgb, var(--danger) 35%, var(--line)); }
+.callout.danger .mark{ background:var(--danger-tint); color:var(--danger); }
+.callout.teal .mark{ background:var(--teal-tint); color:var(--teal-ink); }
+.callout .body{ font-size:15px; color:var(--ink-soft); }
+.callout .body strong{ color:var(--ink); font-weight:600; }
+.callout .body code{ background:var(--bg); border:1px solid var(--line); border-radius:4px; padding:0.1em 0.4em; font-size:0.9em; color:var(--ink); }
+
+/* ---- two-track cards ---- */
+.tracks{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+@media (max-width:700px){ .tracks{ grid-template-columns:1fr; } }
+.track{
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--bg-raised);
+  padding:22px;
+  box-shadow:var(--shadow);
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.track .tag{
+  font-family:"IBM Plex Mono";
+  font-size:11.5px;
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+  width:fit-content;
+  padding:3px 9px;
+  border-radius:5px;
+}
+.track.a .tag{ background:var(--teal-tint); color:var(--teal-ink); }
+.track.b .tag{ background:var(--amber-tint); color:var(--amber-ink); }
+.track h3{ font-size:19px; }
+.track p{ font-size:14.5px; color:var(--ink-soft); margin:0; }
+
+/* ---- data inventory table ---- */
+.table-wrap{ overflow-x:auto; border:1px solid var(--line); border-radius:10px; background:var(--bg-raised); box-shadow:var(--shadow); }
+table{ border-collapse:collapse; width:100%; min-width:560px; font-size:14.5px; }
+th{
+  text-align:left;
+  font-family:"IBM Plex Mono";
+  font-size:11px;
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+  color:var(--ink-faint);
+  font-weight:500;
+  padding:12px 16px;
+  border-bottom:1px solid var(--line);
+  white-space:nowrap;
+}
+td{
+  padding:13px 16px;
+  border-bottom:1px solid var(--line);
+  vertical-align:top;
+  color:var(--ink-soft);
+}
+tr:last-child td{ border-bottom:none; }
+td.strong, td strong{ color:var(--ink); font-weight:600; }
+td code{ font-size:13px; background:var(--bg); border:1px solid var(--line); border-radius:4px; padding:0.1em 0.4em; color:var(--ink); }
+tr.exclude td{ background:var(--danger-tint); }
+tr.recommend td{ background:var(--teal-tint); }
+
+/* ---- diagram ---- */
+.diagram-wrap{
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--bg-raised);
+  box-shadow:var(--shadow);
+  padding:8px;
+  overflow-x:auto;
+}
+.diagram-wrap svg{ display:block; min-width:640px; width:100%; height:auto; }
+.diagram-caption{ font-size:13px; color:var(--ink-faint); text-align:center; margin-top:2px; }
+
+/* ---- steps ---- */
+.steps{ display:flex; flex-direction:column; }
+.step{
+  display:grid;
+  grid-template-columns:44px minmax(0,1fr);
+  gap:20px;
+  padding:30px 0;
+  border-top:1px solid var(--line);
+}
+.step:first-child{ border-top:none; padding-top:0; }
+.step .num{
+  font-family:"Fraunces";
+  font-weight:500;
+  font-size:26px;
+  color:var(--ink-faint);
+  line-height:1;
+  padding-top:2px;
+}
+.step-body{ display:flex; flex-direction:column; gap:12px; min-width:0; }
+.step-body h3{ font-size:20px; }
+.step-body .why{ color:var(--ink-soft); font-size:15px; max-width:68ch; }
+.step-body .why strong{ color:var(--ink); }
+
+.step-layout{ display:grid; grid-template-columns:minmax(0,1fr) 240px; gap:28px; align-items:start; }
+@media (max-width:760px){ .step-layout{ grid-template-columns:1fr; } }
+.step-main{ display:flex; flex-direction:column; gap:12px; min-width:0; }
+
+.step-visual{
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--bg-raised);
+  box-shadow:var(--shadow);
+  padding:16px 16px 14px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.step-visual .sv-label{
+  font-family:"IBM Plex Mono";
+  font-size:10.5px;
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+  color:var(--ink-faint);
+}
+.step-visual .sv-figure{
+  font-family:"Fraunces";
+  font-size:26px;
+  color:var(--ink);
+  line-height:1;
+}
+.stackbar{ display:flex; gap:2px; height:14px; width:100%; }
+.stackbar .seg{ border-radius:2px; }
+.stackbar .seg:first-child{ border-top-left-radius:4px; border-bottom-left-radius:4px; }
+.stackbar .seg:last-child{ border-top-right-radius:4px; border-bottom-right-radius:4px; }
+.sv-legend{ display:flex; flex-direction:column; gap:7px; }
+.sv-legend .row{ display:flex; align-items:baseline; gap:8px; font-size:12.5px; }
+.sv-legend .swatch{ width:9px; height:9px; border-radius:2px; flex:none; }
+.sv-legend .lbl{ color:var(--ink-soft); flex:1; }
+.sv-legend .val{ font-family:"IBM Plex Mono"; color:var(--ink); font-variant-numeric:tabular-nums; }
+.sv-note{ font-size:12px; color:var(--ink-faint); border-top:1px solid var(--line); padding-top:10px; }
+
+.choice-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; margin-top:4px; }
+.choice{
+  border:1px solid var(--line);
+  border-radius:9px;
+  padding:14px 16px;
+  background:var(--bg-raised);
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.choice.pick{ border-color:color-mix(in srgb, var(--teal) 45%, var(--line)); background:var(--teal-tint); }
+.choice .head{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.choice .name{ font-weight:600; font-size:14.5px; color:var(--ink); }
+.choice .pill{ font-family:"IBM Plex Mono"; font-size:10.5px; letter-spacing:0.04em; text-transform:uppercase; color:var(--teal-ink); background:var(--bg-raised); border:1px solid var(--teal); border-radius:4px; padding:1px 6px; }
+.choice.pick .pill{ background:var(--teal); color:var(--bg-raised); border-color:var(--teal); }
+.choice p{ font-size:13.5px; color:var(--ink-soft); margin:0; }
+
+pre{
+  margin:0;
+  background:var(--bg-raised);
+  border:1px solid var(--line);
+  border-radius:9px;
+  padding:16px 18px;
+  overflow-x:auto;
+  box-shadow:var(--shadow);
+}
+pre code{
+  font-size:13px;
+  line-height:1.65;
+  color:var(--ink);
+  white-space:pre;
+}
+.code-label{
+  font-family:"IBM Plex Mono";
+  font-size:11px;
+  letter-spacing:0.05em;
+  text-transform:uppercase;
+  color:var(--ink-faint);
+  margin-bottom:-4px;
+}
+
+.field-list{ display:flex; flex-wrap:wrap; gap:8px; }
+.field{
+  font-family:"IBM Plex Mono";
+  font-size:12.5px;
+  background:var(--bg-raised);
+  border:1px solid var(--line);
+  border-radius:5px;
+  padding:5px 10px;
+  color:var(--ink-soft);
+}
+.field b{ color:var(--ink); font-weight:600; }
+
+footer{
+  grid-column:1 / -1;
+  margin-top:8px;
+  padding-top:28px;
+  border-top:1px solid var(--line);
+  color:var(--ink-faint);
+  font-size:13.5px;
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  flex-wrap:wrap;
+}
+
+@media (prefers-reduced-motion:no-preference){
+  .step, .track, .choice{ transition:border-color .15s ease; }
+}
+</style>
+
+<div class="shell">
+
+  <div class="masthead">
+    <div class="eyebrow">Build guide — local RAG + job matching</div>
+    <h1 class="title">Career RAG Pipeline</h1>
+    <p class="dek">A plan for turning the job-search folder into two things: a searchable index of everything already written and applied, and a matcher that scores new postings against it automatically.</p>
+    <div class="path-chip">📁 /Users/caesar/Desktop/Personal/jobs ai search program</div>
+  </div>
+
+  <div class="stack-status" aria-label="Pipeline build status: all 10 steps built and verified against real data">
+    <div class="stack-status-head">
+      <span class="toc-label" style="margin:0;">Build status — the stack, as it stands right now</span>
+      <span class="count"><b>10</b> of <b>10</b> steps built and verified against the real folder</span>
+    </div>
+    <div class="stack-track">
+      <div class="stack-node done"><span class="node-dot">01</span><span class="node-label">Inventory</span><span class="node-status">Built</span></div>
+      <div class="stack-connector done"></div>
+      <div class="stack-node done"><span class="node-dot">02</span><span class="node-label">Chunking</span><span class="node-status">Built</span></div>
+      <div class="stack-connector done"></div>
+      <div class="stack-node done"><span class="node-dot">03</span><span class="node-label">Embedding<br>bge&#8209;small</span><span class="node-status">Built</span></div>
+      <div class="stack-connector done"></div>
+      <div class="stack-node done"><span class="node-dot">04</span><span class="node-label">Vector store<br>Chroma</span><span class="node-status">Built</span></div>
+      <div class="stack-connector done"></div>
+      <div class="stack-node done"><span class="node-dot">05</span><span class="node-label">Metadata<br>schema</span><span class="node-status">Built</span></div>
+      <div class="stack-connector done"></div>
+      <div class="stack-node done"><span class="node-dot">06</span><span class="node-label">Ingestion<br>script</span><span class="node-status">Built</span></div>
+      <div class="stack-connector done"></div>
+      <div class="stack-node done"><span class="node-dot">07</span><span class="node-label">Query<br>interface</span><span class="node-status">Built</span></div>
+      <div class="stack-connector done"></div>
+      <div class="stack-node done"><span class="node-dot">08</span><span class="node-label">Live job<br>matching</span><span class="node-status">Built</span></div>
+      <div class="stack-connector done"></div>
+      <div class="stack-node done"><span class="node-dot">09</span><span class="node-label">Outreach<br>3 channels</span><span class="node-status">Built</span></div>
+      <div class="stack-connector done"></div>
+      <div class="stack-node done"><span class="node-dot">10</span><span class="node-label">Keeping<br>it current</span><span class="node-status">Built</span></div>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-label">Contents</div>
+    <a href="#scope">Scope: two systems, not one</a>
+    <a href="#inventory">What's in the folder now</a>
+    <a href="#architecture">Architecture</a>
+    <a class="step-link" href="#step-1"><span class="n">01</span> Inventory &amp; redact</a>
+    <a class="step-link" href="#step-2"><span class="n">02</span> Chunking</a>
+    <a class="step-link" href="#step-3"><span class="n">03</span> Embedding model</a>
+    <a class="step-link" href="#step-4"><span class="n">04</span> Vector store</a>
+    <a class="step-link" href="#step-5"><span class="n">05</span> Metadata schema</a>
+    <a class="step-link" href="#step-6"><span class="n">06</span> Ingestion script</a>
+    <a class="step-link" href="#step-7"><span class="n">07</span> Query interface</a>
+    <a class="step-link" href="#step-8"><span class="n">08</span> Live job matching</a>
+    <a class="step-link" href="#step-9"><span class="n">09</span> Outreach: LinkedIn, SEEK &amp; email</a>
+    <a class="step-link" href="#step-10"><span class="n">10</span> Keeping it current</a>
+  </nav>
+
+  <main>
+
+    <section id="scope">
+      <div class="sec-head">
+        <h2>Two systems, not one</h2>
+        <p class="lede">"RAG database that also searches for jobs" is actually two pipelines sharing one vector store. Worth separating cleanly, because they have different data, different refresh rates, and different queries.</p>
+      </div>
+      <div class="tracks">
+        <div class="track a">
+          <span class="tag">Track A — corpus</span>
+          <h3>Index what already exists</h3>
+          <p>Embed the 90 application folders, the tracker, and the resume variants so you can ask things like "what did I tell Deloitte about the Bedrock gap" or "which cover letters used the Visa FIFA WWC story" without grepping 90 folders by hand. Refreshes once per batch.</p>
+        </div>
+        <div class="track b">
+          <span class="tag">Track B — matching</span>
+          <h3>Score new postings as they land</h3>
+          <p>Embed a freshly scraped job description, compare it against the resume + past-application vectors, and rank it by fit before anyone reads it. Refreshes every time vibatchium pulls a new batch of listings.</p>
+        </div>
+      </div>
+      <p class="lede" style="margin-top:-4px;">Both tracks read and write the <em>same</em> Chroma collection with a <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">doc_type</code> field distinguishing them — one store, one embedding model, two query patterns.</p>
+    </section>
+
+    <section id="inventory">
+      <div class="sec-head">
+        <h2>What's in the folder now</h2>
+        <p class="lede">The ingestion step maps directly onto files that already exist — nothing needs restructuring first.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Source</th><th>Contents</th><th>Treat as</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="strong">applications/&lt;Company_Role&gt;/NOTES.md</td>
+              <td>Fit assessment, honest gap notes, the angle taken</td>
+              <td>One chunk per file — this is the highest-value retrieval unit</td>
+            </tr>
+            <tr>
+              <td class="strong">applications/&lt;Company_Role&gt;/job.json</td>
+              <td>Structured JD fields tailor.py consumed</td>
+              <td>Parse as structured metadata, not free text</td>
+            </tr>
+            <tr>
+              <td class="strong">applications/&lt;Company_Role&gt;/Cover_Letter.html, Resume.html</td>
+              <td>The actual tailored language sent</td>
+              <td>Strip HTML → one chunk each, tagged <code>doc_type=cover</code> / <code>resume</code></td>
+            </tr>
+            <tr>
+              <td class="strong">applications/&lt;Company_Role&gt;/outreach.md</td>
+              <td>Direct-contact drafts, hiring-manager names</td>
+              <td>One chunk per file</td>
+            </tr>
+            <tr>
+              <td class="strong">applications/_tracker.md</td>
+              <td>One markdown table row per application — company, role, salary, platform, status, notes</td>
+              <td><strong>Row-level</strong> chunks, not the whole table — 90 rows in one chunk defeats retrieval</td>
+            </tr>
+            <tr>
+              <td class="strong">LOG.md, RESUME_HERE.md</td>
+              <td>Standing rules, corrections, current handover state</td>
+              <td>Section-level chunks (split on <code>##</code>)</td>
+            </tr>
+            <tr>
+              <td class="strong">the author - Resume*.pdf/.docx/.html</td>
+              <td>Master resume variants</td>
+              <td>One chunk each — this is the vector matched against every new posting</td>
+            </tr>
+            <tr class="exclude">
+              <td class="strong">applications/_ats_credentials_*.md</td>
+              <td>Plaintext ATS passwords</td>
+              <td><strong>Never embed.</strong> A similarity search can surface these in a result card.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout danger">
+        <span class="mark">watch out</span>
+        <div class="body">Five files in <code>applications/</code> are named <code>_ats_credentials_*.md</code> and hold live passwords in plain text (confirmed while reading the folder for this guide — <code>RESUME_HERE.md</code> itself quotes two). Exclude the whole <code>_ats_credentials_*</code> glob from the ingestion walk. Don't rely on redaction after the fact — exclude at the file-discovery step so a password never reaches the embedding API in the first place.</div>
+      </div>
+    </section>
+
+    <section id="architecture">
+      <div class="sec-head">
+        <h2>Architecture</h2>
+        <p class="lede">One store, two write paths, one read path with a mode switch.</p>
+      </div>
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 1120 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram showing the corpus indexing pipeline and live job matching pipeline both writing into one Chroma vector store, which a query layer reads from in two modes.">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--ink-faint)"></path>
+            </marker>
+          </defs>
+          <style>
+            .lbl{ font-family:"IBM Plex Mono", monospace; font-size:12px; fill:var(--ink-soft); }
+            .lbl-strong{ font-family:"IBM Plex Sans", sans-serif; font-size:13.5px; font-weight:600; fill:var(--ink); }
+            .cap{ font-family:"IBM Plex Mono", monospace; font-size:10.5px; letter-spacing:.04em; fill:var(--ink-faint); text-transform:uppercase; }
+            .box{ fill:var(--bg-raised); stroke:var(--line); stroke-width:1; }
+            .box-a{ stroke:color-mix(in srgb, var(--teal) 55%, var(--line)); }
+            .box-b{ stroke:color-mix(in srgb, var(--amber) 55%, var(--line)); }
+            .box-core{ fill:var(--ink); }
+            .edge{ stroke:var(--ink-faint); stroke-width:1.3; fill:none; marker-end:url(#arrow); }
+          </style>
+
+          <!-- Track A: corpus -->
+          <text x="30" y="26" class="cap">track a — corpus</text>
+          <rect x="24" y="40" width="200" height="58" rx="8" class="box box-a"></rect>
+          <text x="42" y="64" class="lbl-strong">applications/*</text>
+          <text x="42" y="82" class="lbl">NOTES · job.json · tracker rows</text>
+
+          <rect x="24" y="130" width="200" height="58" rx="8" class="box box-a"></rect>
+          <text x="42" y="154" class="lbl-strong">Chunk + embed</text>
+          <text x="42" y="172" class="lbl">bge-small, local, free</text>
+
+          <path class="edge" d="M124,98 L124,130"></path>
+
+          <!-- Track B: live matching -->
+          <text x="30" y="252" class="cap">track b — matching</text>
+          <rect x="24" y="266" width="200" height="58" rx="8" class="box box-b"></rect>
+          <text x="42" y="290" class="lbl-strong">vibatchium (vb)</text>
+          <text x="42" y="308" class="lbl">LinkedIn / SEEK / Indeed scrape</text>
+
+          <rect x="24" y="356" width="200" height="58" rx="8" class="box box-b"></rect>
+          <text x="42" y="380" class="lbl-strong">Embed new JD</text>
+          <text x="42" y="398" class="lbl">same local model, same dims</text>
+
+          <path class="edge" d="M124,324 L124,356"></path>
+
+          <!-- Core store -->
+          <rect x="380" y="160" width="230" height="100" rx="10" class="box box-core"></rect>
+          <text x="495" y="200" text-anchor="middle" font-family="IBM Plex Sans" font-size="14.5" font-weight="600" fill="var(--bg)">Chroma</text>
+          <text x="495" y="220" text-anchor="middle" class="lbl" fill="var(--bg-raised)" opacity="0.8">persistent, local</text>
+          <text x="495" y="238" text-anchor="middle" class="lbl" fill="var(--bg-raised)" opacity="0.8">./career_index/</text>
+
+          <path class="edge" d="M224,159 C300,159 320,190 380,195"></path>
+          <path class="edge" d="M224,385 C300,385 320,240 380,225"></path>
+
+          <!-- Query layer -->
+          <rect x="700" y="90" width="220" height="70" rx="8" class="box">
+            <title>Query — corpus mode</title>
+          </rect>
+          <text x="718" y="118" class="lbl-strong">Query: recall</text>
+          <text x="718" y="136" class="lbl">"what did I tell Deloitte…"</text>
+
+          <rect x="700" y="270" width="220" height="70" rx="8" class="box">
+            <title>Query — matching mode</title>
+          </rect>
+          <text x="718" y="298" class="lbl-strong">Query: rank</text>
+          <text x="718" y="316" class="lbl">new JD vs resume + history</text>
+
+          <path class="edge" d="M610,195 C660,195 660,130 700,125"></path>
+          <path class="edge" d="M610,225 C660,225 660,300 700,305"></path>
+
+          <rect x="960" y="90" width="140" height="70" rx="8" class="box box-a">
+          </rect>
+          <text x="978" y="118" class="lbl-strong">Answer</text>
+          <text x="978" y="136" class="lbl">cited chunks</text>
+
+          <rect x="960" y="270" width="140" height="70" rx="8" class="box box-b">
+          </rect>
+          <text x="978" y="298" class="lbl-strong">Ranked list</text>
+          <text x="978" y="316" class="lbl">→ new_matches.md</text>
+
+          <path class="edge" d="M920,125 L960,125"></path>
+          <path class="edge" d="M920,305 L960,305"></path>
+        </svg>
+      </div>
+      <p class="diagram-caption">Both tracks share the embedding model and the store; only the query intent differs.</p>
+    </section>
+
+    <div class="steps">
+
+      <div class="step" id="step-1">
+        <div class="num">01</div>
+        <div class="step-body">
+          <h3>Inventory the source files, exclude what shouldn't be embedded</h3>
+          <div class="step-layout">
+            <div class="step-main">
+              <p class="why">Walk the folder once, classify every file by the table above, and build the exclusion list before writing a single line of embedding code. <strong>Never embed <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">_ats_credentials_*.md</code></strong>; also skip <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">.DS_Store</code>, binary PDFs (index the HTML twin instead — same text, no parsing needed), and the two template files (<code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">_template_resume.html</code>, <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">_template_cover.html</code>) which are structure, not content.</p>
+              <div class="code-label">career_index/lib.py — exclusion + scope</div>
+              <pre><code># credentials get a dedicated case/separator-insensitive regex, not a glob —
+# a differently-cased "_ATS_credentials_x.md" must not slip through
+_CREDENTIALS_RE = re.compile(r"^_ats[_-]credentials.*\.md$", re.IGNORECASE)
+
+EXCLUDE_GLOBS = [".env", ".DS_Store", "_template_resume.html", "_template_cover.html"]
+OUT_OF_SCOPE_DIRS = {"Business_Cards", "portfolio", "career_index"}
+OUT_OF_SCOPE_FILES = {"Textbook_Reference.html", "career-rag-guide.html"}
+SKIP_EXTS = {".py"}   # tooling, not corpus</code></pre>
+              <p class="why">Run against the actual folder: <strong>594 files</strong> scanned, 0 unclassified, and a hard assertion that catches it if a credential file ever lands in an indexable bucket.</p>
+            </div>
+            <aside class="step-visual" aria-label="Inventory results, 594 files scanned">
+              <span class="sv-label">Live run — actual folder</span>
+              <span class="sv-figure">594 <span style="font-size:14px;color:var(--ink-faint);font-family:'IBM Plex Sans';">files</span></span>
+              <div class="stackbar" role="img" aria-label="292 indexable, 136 need a parser, 152 out of scope, 14 excluded as secrets">
+                <div class="seg" style="flex:292; background:var(--chart-a);" title="Indexable now — 292"></div>
+                <div class="seg" style="flex:136; background:var(--chart-b);" title="Needs parser — 136"></div>
+                <div class="seg" style="flex:152; background:var(--chart-c);" title="Out of scope — 152"></div>
+                <div class="seg" style="flex:14; background:var(--chart-d);" title="Excluded, secret — 14"></div>
+              </div>
+              <div class="sv-legend">
+                <div class="row"><span class="swatch" style="background:var(--chart-a);"></span><span class="lbl">Indexable now</span><span class="val">292</span></div>
+                <div class="row"><span class="swatch" style="background:var(--chart-b);"></span><span class="lbl">Needs parser</span><span class="val">136</span></div>
+                <div class="row"><span class="swatch" style="background:var(--chart-c);"></span><span class="lbl">Out of scope</span><span class="val">152</span></div>
+                <div class="row"><span class="swatch" style="background:var(--chart-d);"></span><span class="lbl">Excluded, secret</span><span class="val">14</span></div>
+              </div>
+              <div class="sv-note">0 unclassified · 0 credential files leaked into an indexable bucket</div>
+            </aside>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" id="step-2">
+        <div class="num">02</div>
+        <div class="step-body">
+          <h3>Chunk by document shape, not a fixed token count</h3>
+          <div class="step-layout">
+            <div class="step-main">
+              <p class="why">The default RAG move — split everything into 500-token windows — actively hurts here, because most of these documents are already the right retrieval unit. A <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">NOTES.md</code> is ~150 words and answers exactly one question ("was this a good fit and why"). Splitting it loses the thread that makes it useful.</p>
+              <div class="field-list">
+                <span class="field"><b>NOTES.md, outreach.md</b> → 1 chunk/file</span>
+                <span class="field"><b>_tracker.md, LOG.md, RESUME_HERE.md</b> → split on <code>##</code> sections; a section that's a table further splits <b>1 chunk/row</b>, leftover prose stays 1 chunk</span>
+                <span class="field"><b>job.json</b> → flattened to <code>key: value</code> lines, 1 chunk</span>
+                <span class="field"><b>Cover_Letter.html, Resume.html, master resumes</b> → HTML tags stripped (stdlib <code>html.parser</code>, no bs4), 1 chunk/file</span>
+              </div>
+              <p class="why">Exception path, not the default: anything over 400 words (a long resume, a verbose cover letter) falls back to sliding windows — 400 words, 60-word overlap — so a chunk never gets so long the embedding blurs into an average of unrelated content.</p>
+              <p class="why">Two cleanup passes run on every chunk before it's final: <strong>markdown noise gets stripped</strong> (<code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">**bold**</code>, <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">[text](url)</code> links, em/en dashes — syntax, not signal, and it eats the token budget for nothing) — and <strong>tracker columns get normalized</strong> to one canonical set, since <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">_tracker.md</code> uses five different header sets across its batches (<code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">Angle taken</code>, <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">Gap named upfront</code>, and <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">Confirmation seen</code> all collapse into one <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">Notes</code> field), so a query for "notes" or "salary" hits every batch instead of whichever one happened to use that exact column name.</p>
+              <div class="code-label">career_index/lib.py — chunk dispatch, tested against the real files</div>
+              <pre><code>def chunk_file(path):
+    name, ext = path.name, path.suffix.lower()
+    if name == "_tracker.md":           return chunk_markdown_sectioned(path, ..., "tracker")
+    if name in ("LOG.md", "RESUME_HERE.md"): return chunk_markdown_sectioned(path, ..., "log")
+    if ext == ".json":                  return chunk_json(path, ...)   # any .json, not just job.json
+    if name == "NOTES.md":              return chunk_whole_file(path, ..., "notes")
+    if name == "outreach.md":           return chunk_whole_file(path, ..., "outreach")
+    if ext == ".html":                  return chunk_whole_file(path, strip_html(...), _html_doc_type(path))</code></pre>
+            </div>
+            <aside class="step-visual" aria-label="Chunking results, 545 indexable chunks from 292 files">
+              <span class="sv-label">Live run — after the audit fixes</span>
+              <span class="sv-figure">545 <span style="font-size:14px;color:var(--ink-faint);font-family:'IBM Plex Sans';">chunks</span></span>
+              <div class="stackbar" role="img" aria-label="135 resume_tailored, 93 tracker_row, 70 cover, 247 other">
+                <div class="seg" style="flex:135; background:var(--chart-a);" title="resume_tailored — 135"></div>
+                <div class="seg" style="flex:93; background:var(--chart-b);" title="tracker_row — 93"></div>
+                <div class="seg" style="flex:70; background:var(--chart-c);" title="cover — 70"></div>
+                <div class="seg" style="flex:247; background:var(--chart-d);" title="everything else — 247"></div>
+              </div>
+              <div class="sv-legend">
+                <div class="row"><span class="swatch" style="background:var(--chart-a);"></span><span class="lbl">resume_tailored</span><span class="val">135</span></div>
+                <div class="row"><span class="swatch" style="background:var(--chart-b);"></span><span class="lbl">tracker_row</span><span class="val">93</span></div>
+                <div class="row"><span class="swatch" style="background:var(--chart-c);"></span><span class="lbl">cover</span><span class="val">70</span></div>
+                <div class="row"><span class="swatch" style="background:var(--chart-d);"></span><span class="lbl">notes / outreach / job_meta / log / supplementary</span><span class="val">247</span></div>
+              </div>
+              <div class="sv-note">292 files → 558 chunks, 13 quarantined for saying "password" → 545 indexable · 0 empty chunks</div>
+            </aside>
+          </div>
+          <div class="callout teal">
+            <span class="mark">backlog</span>
+            <div class="body">
+              <strong>Other things worth adding to chunking</strong>, roughly in order of payoff for this corpus:
+              <ul style="margin:10px 0 0; padding-left:18px; display:flex; flex-direction:column; gap:8px;">
+                <li><strong>Token-aware guard, not word-aware.</strong> The 400-word guard is a proxy — bge-small's real limit is 512 <em>tokens</em>, and markdown/HTML text runs ~1.3 tokens/word. A resume chunk at 400 words can brush the ceiling. Worth switching to counting tokens via the model's own tokenizer once step 3 (embedding) is wired up.</li>
+                <li><strong>Parent-child linking.</strong> A <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">tracker_row</code> chunk is compact (~40 words) — great for a hit, thin for an answer. Tagging each chunk with an <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">application_id</code> that maps back to its full folder means a query can retrieve the row <em>and</em> pull in the matching NOTES.md/job.json for real context, not just the row alone.</li>
+                <li><strong>Dedup near-identical chunks.</strong> Cover letters share a lot of boilerplate structure across applications. Not urgent at 90 folders, but if this scales up, embedding-similarity dedup before indexing keeps the store from being dominated by near-copies.</li>
+                <li><strong>PDF/DOCX parsing.</strong> Still sitting in <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">needs_parser</code> untouched — only matters for the ~4 top-level resume variants with no HTML twin, so low priority.</li>
+              </ul>
+              <p style="margin:10px 0 0; font-size:13px; color:var(--ink-faint);">Markdown-noise stripping and cross-batch tracker normalization are done — folded into the chunk dispatch above.</p>
+            </div>
+          </div>
+          <div class="callout danger">
+            <span class="mark">audited</span>
+            <div class="body">
+              <strong>Two independent reviews, run against each other.</strong> Two agents reviewed this file separately — different failure-mode focus, neither saw the other's work — then findings were cross-checked against the real code. Both independently caught the same high-severity bug, which is the strongest kind of confirmation; each also caught things the other missed. Six real issues fixed:
+              <ul style="margin:10px 0 0; padding-left:18px; display:flex; flex-direction:column; gap:6px;">
+                <li><strong>Credential exclusion was case-sensitive, and its own safety-net assert used the identical broken pattern</strong> — a file named <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">_ATS_credentials_x.md</code> would slip into the indexable set and the assert would still print "passed." Found independently by both reviewers. Fixed with a dedicated case/separator-insensitive regex, plus a <em>second, content-based</em> check — scanning actual chunk text for the word "password" — that shares no code path with the filename check. That second check immediately caught something real: <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">RESUME_HERE.md</code> and five other legitimately in-scope files had plaintext ATS passwords typed straight into their prose. Those 13 chunks are now quarantined at ingest — filtered out, never printed to a log, with a pointer to which file/section needs redacting.</li>
+                <li><strong>job.json list fields were corrupted</strong> — Python's <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">str(list)</code> was embedding raw <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">['a', 'b']</code> repr syntax into `job_meta` chunks. Fixed: list/dict values now flatten to readable `"; "`-joined text.</li>
+                <li><strong>HTML stripping fused adjacent words</strong> — <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">&lt;td&gt;Acme&lt;/td&gt;&lt;td&gt;Corp&lt;/td&gt;</code> was coming out as one word, <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">"AcmeCorp"</code> — confirmed on a real resume, not just a synthetic case. Fixed: every tag boundary now inserts a space.</li>
+                <li><strong>Italic-stripping could delete real content</strong> — a single unpaired asterisk (a salary footnote like <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">$150k*</code>) could pair with an unrelated later asterisk and silently erase everything between them. Removed italic-stripping entirely rather than patch an inherently ambiguous regex — bold stays (unambiguous, paired **), italics don't.</li>
+                <li><strong>No fallback for non-<code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">job.json</code> JSON files</strong> — would have crashed the whole run on any future stray <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">.json</code> file. Generalized to any <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">.json</code>.</li>
+                <li><strong>Table-separator regex was one character too loose</strong> — it would have misread a genuine data row of this tracker's own "-" blank-value convention as a header separator and swallowed it. Tightened to require 3+ dashes per cell, the real markdown convention.</li>
+              </ul>
+              <p style="margin:10px 0 0;">One scope bug too: this guide's own saved copy (<code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">career-rag-guide.html</code>) is a top-level <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">.html</code> file sitting in the same folder — it was being classified as a master resume and indexed. Added to the out-of-scope list.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" id="step-3">
+        <div class="num">03</div>
+        <div class="step-body">
+          <h3>Pick the embedding model</h3>
+          <div class="step-layout">
+            <div class="step-main">
+              <p class="why">Anthropic doesn't run an embeddings endpoint — Claude reads and writes text, it doesn't turn text into vectors. That step has to come from somewhere else. Decision made: <strong>zero ongoing cost</strong> wins over the last few points of quality — everything below runs on the author's own machine, no API key, no credits, no account to manage.</p>
+              <div class="choice-grid">
+                <div class="choice pick">
+                  <div class="head"><span class="name">bge-small (local)</span><span class="pill">chosen</span></div>
+                  <p>Runs offline via sentence-transformers — one-time ~130MB model download, then every embed call is free and never leaves the machine. Slightly weaker semantic separation than the paid options on short professional text, but at ~90 folders that gap doesn't change which results surface.</p>
+                </div>
+                <div class="choice">
+                  <div class="head"><span class="name">Voyage voyage-3.5</span></div>
+                  <p>Anthropic's recommended embedding partner, strongest quality on short dense professional text. Paid API — cents per batch, but a separate account and a separate credit pool from Claude usage. Not the path here.</p>
+                </div>
+                <div class="choice">
+                  <div class="head"><span class="name">OpenAI text-embedding-3-large</span></div>
+                  <p>Comparable quality to Voyage, same problem — another paid account, another key. Ruled out for the same reason.</p>
+                </div>
+              </div>
+              <div class="code-label">career_index/embed.py — kept separate from lib.py on purpose</div>
+              <pre><code>MODEL_NAME = "BAAI/bge-small-en-v1.5"
+
+def get_model():
+    global _model
+    if _model is None:
+        from sentence_transformers import SentenceTransformer
+        _model = SentenceTransformer(MODEL_NAME)
+    return _model
+
+def embed_texts(texts):
+    vectors = get_model().encode(list(texts), normalize_embeddings=True)
+    return [v.tolist() for v in vectors]</code></pre>
+              <p class="why">Steps 1+2 (<code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">lib.py</code>) stay pure stdlib on purpose — no install needed to inventory or chunk. This is the one file where the <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">sentence-transformers</code> dependency enters, isolated in its own <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">career_index/.venv</code>.</p>
+            </div>
+            <aside class="step-visual" aria-label="Embedding results, 545 chunks embedded">
+              <span class="sv-label">Live run — real corpus, cached model</span>
+              <span class="sv-figure">2.9<span style="font-size:16px;">s</span> <span style="font-size:13px;color:var(--ink-faint);font-family:'IBM Plex Sans';">to embed all 545 chunks</span></span>
+              <div class="sv-legend">
+                <div class="row"><span class="lbl">Chunks embedded</span><span class="val">545</span></div>
+                <div class="row"><span class="lbl">Vector dimensions</span><span class="val">384</span></div>
+                <div class="row"><span class="lbl">Throughput</span><span class="val">187/sec</span></div>
+                <div class="row"><span class="lbl">Model load (cached)</span><span class="val">8.6s</span></div>
+              </div>
+              <div class="sv-note">Sanity check: master resume ↔ its closest tracker row scored cosine 0.812 — the vectors carry real signal, not noise.</div>
+            </aside>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" id="step-4">
+        <div class="num">04</div>
+        <div class="step-body">
+          <h3>Pick the vector store</h3>
+          <div class="step-layout">
+            <div class="step-main">
+              <p class="why">At 90 folders and a few hundred chunks total, this is a small-data problem — the deciding factor is operational overhead, not scale.</p>
+              <div class="choice-grid">
+                <div class="choice pick">
+                  <div class="head"><span class="name">Chroma</span><span class="pill">recommended</span></div>
+                  <p>Embedded, persists to a local directory, no server to run. Drops straight into the existing Python pipeline next to <code>tailor.py</code>. Right choice at this scale.</p>
+                </div>
+                <div class="choice">
+                  <div class="head"><span class="name">LanceDB</span></div>
+                  <p>Also embedded and local, columnar under the hood — faster at millions of rows. No benefit yet at a few hundred chunks.</p>
+                </div>
+                <div class="choice">
+                  <div class="head"><span class="name">Qdrant / pgvector</span></div>
+                  <p>Both want a running server or a Postgres instance. Only worth it if this becomes a shared, multi-user tool — not for one person's job search folder.</p>
+                </div>
+              </div>
+              <div class="code-label">career_index/store.py — id collision caught on the first real run</div>
+              <pre><code>def _chunk_ids(chunks):
+    # NOTE: extra (section/row/part) alone isn't unique -- two different
+    # _tracker.md sections can share a header title across batches. That
+    # collided for real: 11 duplicate ids, chromadb.errors.DuplicateIDError.
+    # A per-(path, doc_type) occurrence counter is what actually guarantees it.
+    seen = {}
+    ids = []
+    for c in chunks:
+        group_key = f"{c.path.relative_to(lib.ROOT)}:{c.doc_type}"
+        n = seen.get(group_key, 0); seen[group_key] = n + 1
+        ids.append(sha1(f"{group_key}:{n}:{c.extra}"))
+    return ids</code></pre>
+            </div>
+            <aside class="step-visual" aria-label="Chroma store results, 545 vectors">
+              <span class="sv-label">Live run — real corpus, real query</span>
+              <span class="sv-figure">545 <span style="font-size:14px;color:var(--ink-faint);font-family:'IBM Plex Sans';">vectors stored</span></span>
+              <div class="sv-legend">
+                <div class="row"><span class="lbl">On disk</span><span class="val">10.7 MB</span></div>
+                <div class="row"><span class="lbl">Test query top hit</span><span class="val">0.809</span></div>
+              </div>
+              <div class="sv-note">Query "AI engineering role in Sydney with AWS Bedrock experience needed" correctly top-ranked the tracker's own Sydney AI-engineer rows over unrelated chunks — retrieval works end to end.</div>
+            </aside>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" id="step-5">
+        <div class="num">05</div>
+        <div class="step-body">
+          <h3>Design the metadata schema</h3>
+          <div class="step-layout">
+            <div class="step-main">
+              <p class="why">The text similarity search finds relevant chunks; the metadata is what lets you filter and rank them ("only Applied roles", "only Australia", "only Finance sector"). The original plan here was wrong in one specific way, worth stating plainly: it assumed <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">job.json</code> held structured JD fields like location and salary. Building it for real showed <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">job.json</code> is actually <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">tailor.py</code>'s template input (profile paragraph, competency bullets) — no location, no salary, no sector. That data lives in <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">_tracker.md</code> rows instead, joined onto each folder by matching company names (camelCase-aware folder-name fallback when a folder has no <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">job.json</code>) — and two fields the author asked for early on, <strong>country</strong> and <strong>category</strong>, don't exist as structured data anywhere, so they're regex/keyword extractors over NOTES.md prose, not lookups.</p>
+              <div class="field-list">
+                <span class="field"><b>company, role</b> from job.json, folder-name fallback</span>
+                <span class="field"><b>platform, salary, status, sector</b> joined from the matching tracker row — <em>scored</em> match, not first-match-wins</span>
+                <span class="field"><b>country</b> tracker's Location column when it resolves to one, else a keyword scan over NOTES.md</span>
+                <span class="field"><b>category</b> tracker's own Sector column when present, else a keyword scan</span>
+                <span class="field"><b>contact_name</b> first segment of the tracker's Hiring contact field</span>
+                <span class="field"><b>doc_type, path, section/row/part</b> from chunking (steps 1–2), always wins over folder-level fields</span>
+              </div>
+              <div class="code-label">career_index/meta.py — scored join, not first-match-wins</div>
+              <pre><code>def _match_score(key, rc):          # key = folder's company, rc = tracker row's Company
+    if key == rc: return 100                                    # exact
+    if len(key) >= 6 and (key in rc or rc in key): return 80    # substring
+    overlap = significant_words(key) & significant_words(rc)    # generic words
+    if overlap and len(overlap)/min(...) >= 0.6: return 50+     # (group, engineer,
+    return None                                                 #  senior...) excluded
+
+# take the BEST-scoring row, not the first one found; a tie among
+# word-overlap-only matches (score &lt; 80) is genuinely ambiguous between
+# two different companies -- refuse rather than guess</code></pre>
+              <div class="callout danger" style="margin-top:4px;">
+                <span class="mark">gap, not built</span>
+                <div class="body"><strong>"How long has the job been open" — genuinely not buildable from this corpus.</strong> <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">job.json</code>'s <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">date</code> field is when the application was <em>tailored</em>, not when the role was <em>posted</em> — the original posting date was never captured for any of these 90 folders, so a <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">days_open</code> field can't be backfilled retroactively. Buildable going forward only: capture the posting date at scrape time for every new batch, then compute the age live at query time (never store it statically, per the earlier note on this field).</div>
+              </div>
+            </div>
+            <aside class="step-visual" aria-label="Metadata field coverage, 66 application folders, after the second audit round's fixes">
+              <span class="sv-label">Live run — coverage, honestly measured, post-audit</span>
+              <span class="sv-figure">66 <span style="font-size:14px;color:var(--ink-faint);font-family:'IBM Plex Sans';">folders indexed</span></span>
+              <div class="sv-legend" style="gap:11px;">
+                <div class="row" style="flex-direction:column;align-items:stretch;gap:4px;">
+                  <div style="display:flex;justify-content:space-between;"><span class="lbl">Tracker-joined</span><span class="val">68%</span></div>
+                  <div style="height:5px;border-radius:3px;background:var(--line);"><div style="height:100%;width:68%;border-radius:3px;background:var(--chart-a);"></div></div>
+                </div>
+                <div class="row" style="flex-direction:column;align-items:stretch;gap:4px;">
+                  <div style="display:flex;justify-content:space-between;"><span class="lbl">Country detected</span><span class="val">65%</span></div>
+                  <div style="height:5px;border-radius:3px;background:var(--line);"><div style="height:100%;width:65%;border-radius:3px;background:var(--chart-a);"></div></div>
+                </div>
+                <div class="row" style="flex-direction:column;align-items:stretch;gap:4px;">
+                  <div style="display:flex;justify-content:space-between;"><span class="lbl">Category detected</span><span class="val">29%</span></div>
+                  <div style="height:5px;border-radius:3px;background:var(--line);"><div style="height:100%;width:29%;border-radius:3px;background:var(--chart-b);"></div></div>
+                </div>
+                <div class="row" style="flex-direction:column;align-items:stretch;gap:4px;">
+                  <div style="display:flex;justify-content:space-between;"><span class="lbl">Contact name parsed</span><span class="val">14%</span></div>
+                  <div style="height:5px;border-radius:3px;background:var(--line);"><div style="height:100%;width:14%;border-radius:3px;background:var(--chart-d);"></div></div>
+                </div>
+              </div>
+              <div class="sv-note">Lower than the first pass (was 82%/65%/45%/21%) — on purpose. Those numbers included confidently WRONG joins; these are honest. Verified with a real filtered query — country=Australia + "finance sector" — now correctly returns PSG, Insignia, NAB, Commonwealth Bank, each with its own real data.</div>
+            </aside>
+          </div>
+          <div class="callout danger">
+            <span class="mark">audited — round 2</span>
+            <div class="body">
+              <strong>Two more independent reviews, same cross-check pattern.</strong> Both agents independently reproduced the same critical failure: the company-name join was matching on generic shared words ("group", "engineer") and taking the first hit instead of the best one — <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">Automic Group</code>, <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">Georgiou Group</code>, <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">Nuage Technology Group</code>, and <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">Macquarie Group</code> were all silently joined to <em>Professional Search Group's</em> tracker row — and PSG's own folder never got its own data. This is worse than a missing match: it looks successful (<code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">_tracker_matched: True</code>) while being wrong. Four fixes:
+              <ul style="margin:10px 0 0; padding-left:18px; display:flex; flex-direction:column; gap:6px;">
+                <li><strong>Rewrote the join as a scored match, not first-found.</strong> Exact/substring matches score highest and win outright; word-overlap matches exclude a stopword list of generic business terms (group, engineer, senior, solutions, search, partners...) and require 60%+ of the smaller company name's meaningful words to overlap. A tie between two different companies is now treated as genuinely ambiguous and refused, rather than guessed. Tracker-join coverage dropped from a fake 82% to an honest 68% — the right direction.</li>
+                <li><strong>Status was being fabricated.</strong> Any matched row without an explicit Status column defaulted to <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">"Applied"</code> — including rows that live under the tracker's own "Skipped" and "blocked" sections, breaking the module's own headline use case. Fixed: status now comes from the row's <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">_section</code> title (Skipped / Blocked / Flagged / Applied) when there's no explicit column, defaulting to nothing rather than a guess.</li>
+                <li><strong>Two real tracker headers were missing from the alias map</strong> — <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">"Asked salary"</code> (reversed word order from the aliased <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">"Salary asked"</code>) and <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">"Hiring contact (for reference)"</code> — silently dropping real salary data for otherwise-correctly-matched folders. Rebuilt the alias map by enumerating all 14 real header tuples in the file instead of patching misses reactively.</li>
+                <li><strong>Category/country keywords were firing on the author's own bio, not the target company.</strong> <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">"visa"</code> and <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">"aemo/aer/arena"</code> are the author's own past-employer references, reused near-verbatim in the "real fit" framing paragraph across dozens of unrelated NOTES.md files — mislabeling Deloitte and WWT as Energy. Removed both from the keyword lists.</li>
+              </ul>
+              <p style="margin:10px 0 0;">One more found solo while re-verifying the fix: the camelCase folder-name splitter was breaking on acronym-style names — <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">J4RVIS</code> was splitting into <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">"j4 rvis"</code> because the splitter treated digit→uppercase the same as lowercase→uppercase. Fixed to only split at a real lowercase→uppercase boundary.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" id="step-6">
+        <div class="num">06</div>
+        <div class="step-body">
+          <h3>Write the ingestion script</h3>
+          <div class="step-layout">
+            <div class="step-main">
+              <p class="why">By this point the real work already lives in <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">store.build()</code> — chunk (steps 1–2), embed (step 3), attach metadata (step 5), upsert (step 4). Step 6 is deliberately thin: one documented entrypoint that's the actual command to re-run after every batch, instead of "run <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">store.py</code> and ignore the test-query part at the bottom."</p>
+              <div class="code-label">career_index/ingest.py</div>
+              <pre><code>import store
+
+def main():
+    coll, chunks = store.build()
+    print(f"\n{coll.count()} vectors in the store.")
+    return coll.count()
+
+if __name__ == "__main__":
+    main()</code></pre>
+              <p class="why">Safe to re-run — chunk ids are stable (proven in the second audit round: byte-identical across repeated runs), so Chroma's <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">upsert</code> updates existing vectors and adds new ones without ever duplicating the whole store. Not assumed — run twice below.</p>
+              <div class="callout teal" style="margin-top:6px;">
+                <span class="mark">footprint — measured, not estimated</span>
+                <div class="body">Actually timed on the M4 Pro/24GB this runs on: embedding all <strong>545 real chunks took 2.9 seconds</strong> (model already cached — 8.6s to load it into memory first). It's not a background service and it doesn't hold memory once the process exits, so there's nothing competing with normal use of the machine — run it, it finishes in about 12 seconds end to end, move on.</div>
+              </div>
+            </div>
+            <aside class="step-visual" aria-label="Idempotency proof: ran ingest.py twice in a row">
+              <span class="sv-label">Live run — ingest.py, twice in a row</span>
+              <span class="sv-figure">545 <span style="font-size:14px;color:var(--ink-faint);font-family:'IBM Plex Sans';">= 545</span></span>
+              <div class="sv-legend">
+                <div class="row"><span class="lbl">Run 1</span><span class="val">545 vectors</span></div>
+                <div class="row"><span class="lbl">Run 2</span><span class="val">545 vectors</span></div>
+              </div>
+              <div class="sv-note">No growth on the second run — upsert, not duplicate. Safe to wire into a cron/batch-end hook without a dedup pass.</div>
+            </aside>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" id="step-7">
+        <div class="num">07</div>
+        <div class="step-body">
+          <h3>Build the query interface</h3>
+          <div class="step-layout">
+            <div class="step-main">
+              <p class="why">A CLI is enough to start — this can become a Claude Code skill later, the same way <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">tailor.py</code> already is one. Two modes: semantic search with optional metadata filters, and a dedicated <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">--company</code> dedup check — that one needs exact identity matching, not "similar," so it searches text directly rather than through the embedding.</p>
+              <div class="code-label">career_index/query.py — real output, this exact corpus</div>
+              <pre><code>$ query.py "what did I tell them about the AWS Bedrock gap" --n 3
+[0.729] applications/_tracker.md (tracker_row)
+    [Applied] Company: Halcyon Knights | Role: Forward Deployed Engineer (Python)...
+[0.717] applications/_tracker.md (tracker_row)
+    [Applied] Company: Hays | Role: Senior Applied AI Engineer...
+
+$ query.py "AI role in energy sector" --filter country=Australia --n 3
+[0.710] .../CBA_x15_AI_Venturing_Engineer/outreach.md  company=Commonwealth Bank category=Finance
+[0.704] .../MAPTalent_FDE_Manager_AI/job.json  company=MAP Talent Group category=Finance
+
+$ query.py --company "Deloitte"
+4 tracker mention(s) of 'Deloitte':
+  [tracker_row]  status=None   Slug: Deloitte_Senior_FDE_Frontier_GenAI...
+  [tracker_note] status=None   1. Deloitte, Lead FDE Anthropic, req 41672...</code></pre>
+              <p class="why">The Deloitte dedup check is a real fix, not a cherry-picked example: the first version only searched <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">tracker_row</code> chunks and found exactly one hit — but three of the four real Deloitte mentions live in <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">tracker_note</code> prose ("Open, needs the author personally" sections have no table at all), including the reCAPTCHA-blocked Lead FDE application. Fixed by searching both doc types — caught by testing the exact use case the guide promises, not by review.</p>
+            </div>
+            <aside class="step-visual" aria-label="Query interface, two modes tested">
+              <span class="sv-label">Live run — both modes tested</span>
+              <span class="sv-figure">2 <span style="font-size:14px;color:var(--ink-faint);font-family:'IBM Plex Sans';">query modes</span></span>
+              <div class="sv-legend">
+                <div class="row"><span class="lbl">Semantic + filter</span><span class="val">✓ works</span></div>
+                <div class="row"><span class="lbl">Dedup check</span><span class="val">✓ works</span></div>
+                <div class="row"><span class="lbl">Deloitte mentions found</span><span class="val">4</span></div>
+              </div>
+              <div class="sv-note">Bedrock-gap query correctly surfaced Halcyon Knights and Hays — the two folders that actually named that gap upfront in their cover letters.</div>
+            </aside>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" id="step-8">
+        <div class="num">08</div>
+        <div class="step-body">
+          <h3>Wire in live job matching</h3>
+          <div class="step-layout">
+            <div class="step-main">
+              <p class="why">This is the second half of the ask — the store searching <em>for</em> jobs, not just searching what's already there. Every vibatchium batch run already scrapes new postings; the only addition is embedding each JD and comparing it against the resume + best-fit-precedent vectors before it reaches a shortlist. Dedup reuses step 7's fix — substring/text search over <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">tracker_row</code> + <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">tracker_note</code>, not a distance threshold — the earlier plan's <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">dist &lt; 0.08</code> idea would've missed the same prose-only mentions query.py's dedup check already had to be fixed for.</p>
+              <div class="code-label">career_index/rank_new.py — tested against 3 real, live-scraped postings</div>
+              <pre><code>resume_vec = average(coll.get(where={"doc_type": "resume_master"})["embeddings"])
+
+for posting in postings:                          # from vb explore/research output
+    already = search(tracker_row + tracker_note, for=posting.company)
+    if already:
+        skip()                                     # already in the tracker, any status
+        continue
+
+    jd_vec = model.encode(posting.text, normalize_embeddings=True)
+    fit_score = cosine(jd_vec, resume_vec)
+    precedent = top_3_similar(coll, doc_type="notes", to=jd_vec)
+    write_row(posting, fit_score, precedent)        # → new_matches.md, ranked high to low</code></pre>
+              <p class="why">Tested against three postings actually scraped this session via <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">vb explore</code> — a real, currently-open Lorikeet FDE role, a Garvan Institute role, and a Salesforce FDE role (a company already in the tracker under three prior mentions). The dedup check correctly skipped Salesforce; the other two ranked, each with real precedent pulled from the corpus — Lorikeet's closest match was <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">nDeva</code>'s NOTES.md, another Sydney AI-first startup, a genuinely apt comparison, not a coincidence of shared buzzwords.</p>
+              <div class="callout danger" style="margin-top:4px;">
+                <span class="mark">audited — round 3</span>
+                <div class="body">A third audit round (three agents this time) found the resume vector wasn't unit-length — a flat average of 5 chunks measured norm <strong>0.907</strong>, not 1.0, silently deflating every fit score ~9% — and it was weighted by chunk count, not by resume variant (the 3-chunk Energy resume got 60% of the weight, the 2-chunk Principal FDE resume only 40%, contradicting the intent to compare against both equally). Fixed by averaging each variant's chunks first, then averaging the two variants, then renormalizing to length 1 — Lorikeet's score moved from 0.672 to the corrected <strong>0.748</strong>. Ranking order was never affected (a constant scale factor doesn't change who's on top), but the absolute numbers were wrong.</div>
+              </div>
+            </div>
+            <aside class="step-visual" aria-label="Live matching test, 3 real postings scraped and ranked">
+              <span class="sv-label">Live run — 3 real postings, vb explore</span>
+              <span class="sv-figure">2 <span style="font-size:14px;color:var(--ink-faint);font-family:'IBM Plex Sans';">new, 1 skipped</span></span>
+              <div class="sv-legend">
+                <div class="row"><span class="lbl">Lorikeet — FDE</span><span class="val">fit 0.748</span></div>
+                <div class="row"><span class="lbl">Garvan Institute — FDE</span><span class="val">fit 0.731</span></div>
+                <div class="row"><span class="lbl">Salesforce — FDE</span><span class="val">skipped, tracked</span></div>
+              </div>
+              <div class="sv-note">Salesforce correctly matched 3 existing tracker mentions and never reached scoring — dedup worked exactly as designed on a genuinely new live posting, not a synthetic test case.</div>
+            </aside>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" id="step-9">
+        <div class="num">09</div>
+        <div class="step-body">
+          <h3>Outreach: LinkedIn, SEEK, and email — not just applications</h3>
+          <div class="step-layout">
+            <div class="step-main">
+              <p class="why">The original plan here assumed a <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">contact_email</code>/<code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">outreach_sent</code> field that, like <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">job.json</code> in step 5, turned out not to exist. What's actually real: <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">applications/_outreach_log.md</code> is a hand-kept table of every real LinkedIn send — and it already has its own "Not yet sent" section, written by hand in a prior session. This step reproduces that computation programmatically: join each folder's company against the log by the same scored matcher from step 5 (had to — an ad hoc looser version of it, written first, immediately regressed to the exact false-join bug the second audit round fixed there), then bucket every folder into sent / drafted-but-never-sent / no-draft-yet.</p>
+              <div class="code-label">career_index/outreach_gaps.py — real run, cross-checked against the hand-written log</div>
+              <pre><code>$ outreach_gaps.py
+LinkedIn sent:        17
+Drafted, not sent:    35  &lt;- actionable today
+No draft yet:         14
+Sent, no folder:       5  (batch-1, pre-pipeline)
+
+→ Ares Management, Automic Group, Canva (×2), Cloudera (×2), Cognizant,
+  Deloitte (×2), Insignia Financial, NAB, PwC, Salesforce, Transgrid...
+  all have a ready outreach.md that was never actually sent.</code></pre>
+              <p class="why">SEEK messaging and direct email are documented as real gaps, not invented data: <strong>no field anywhere in this corpus</strong> records a SEEK message ever being sent, and no <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">contact_email</code> exists to send an email to in the first place. Email stays draft-only regardless — the standing rule that already governs every other email in the author's workflow.</p>
+            </div>
+            <aside class="step-visual" aria-label="Outreach gap results, 66 folders reconciled against the real send log">
+              <span class="sv-label">Live run — reconciled against _outreach_log.md</span>
+              <span class="sv-figure">35 <span style="font-size:14px;color:var(--ink-faint);font-family:'IBM Plex Sans';">ready to send today</span></span>
+              <div class="sv-legend">
+                <div class="row"><span class="lbl">LinkedIn sent</span><span class="val">17</span></div>
+                <div class="row"><span class="lbl">Drafted, not sent</span><span class="val">35</span></div>
+                <div class="row"><span class="lbl">No draft yet</span><span class="val">14</span></div>
+                <div class="row"><span class="lbl">Needs manual review</span><span class="val">1</span></div>
+                <div class="row"><span class="lbl">No folder at all (batch 1)</span><span class="val">4</span></div>
+              </div>
+              <div class="sv-note">17 + 4 = 21, reconciling exactly against the hand-kept log's 21 distinct sent companies — cross-checked, not just internally consistent.</div>
+            </aside>
+          </div>
+          <div class="callout danger">
+            <span class="mark">audited — round 3, self-caught</span>
+            <div class="body">While writing this step, my first version of the company-matcher accepted whichever tracker/log company scored highest with no floor — the exact generic-word false-join bug the second audit round found and fixed in <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">meta.py</code>. Caught it myself before running it against real data, by recognizing the pattern rather than by a separate review pass — rewrote to reuse <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">meta._match_score()</code>'s exact same scored/refuse-on-ambiguity discipline instead of inventing a second, looser one.</div>
+          </div>
+          <div class="callout danger">
+            <span class="mark">audited — round 4</span>
+            <div class="body">
+              Three more agents this round found real, subtler problems — the earlier "5 companies genuinely have no folder" claim turned out to be wrong for one of them, and fixing that surfaced a deeper issue:
+              <ul style="margin:10px 0 0; padding-left:18px; display:flex; flex-direction:column; gap:6px;">
+                <li><strong>Talenza was falsely reported as having no folder</strong> — it has a real one (<code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">Talenza_AI_Delivery_Lead/</code>). Root cause: this script normalized a folder-name fallback with plain <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">_norm()</code> instead of <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">meta._norm_folder()</code>'s camelCase splitter, gluing the folder name into one unsplit blob. Fixed to detect the fallback case the same way <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">meta.py</code> itself does.</li>
+                <li><strong>Deeper root cause, found while re-verifying that fix:</strong> <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">meta._norm()</code> silently deleted punctuation instead of treating it as a word boundary — "Blackbook.AI" normalized to the single glued token <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">"blackbookai"</code>, while the same company's folder name went through the camelCase splitter and correctly became two words. Same company, two incompatible tokenizations depending on which function touched it. Fixed at the source in <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">meta.py</code> — punctuation now becomes a space uniformly. Re-verified this didn't regress the second audit round's fix: Automic/Georgiou/Nuage still correctly stay unmatched, PSG still correctly keeps its own data.</li>
+                <li><strong>A near-miss "needs review" pass caught its own tie-breaking bug before shipping</strong> — Talenza's real folder and an unrelated company (Insignia) tied at the exact same overlap score; keeping only the alphabetically-first "winner" would have pointed a human at the wrong company with false confidence. Fixed to show all tied candidates.</li>
+                <li><strong>HIGH, in <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">store.py</code> — the round-3 client-caching fix traded one bug for another.</strong> Caching the Chroma client fixed the concurrency crash, but a long-running <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">webui.py</code> process kept serving stale data forever after a separate <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">ingest.py</code> run rebuilt the store — no error, no crash, just silently wrong results. Fixed with a generation marker file that <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">build()</code> touches after every ingest; <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">get_collection()</code> checks it (one cheap stat call) and only reconnects when it changes — cached in the common case, self-healing after a rebuild, no restart needed.</li>
+                <li><strong>MEDIUM — <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">webui.py</code>'s result-count field had no validation.</strong> <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">?n=abc</code>, <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">?n=0</code>, and <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">?n=-5</code> all 500'd — the HTML's <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">min=1 max=20</code> only guards the normal form, not a hand-edited or old saved history URL. Fixed with a try/except and a clamp.</li>
+              </ul>
+              <p style="margin:10px 0 0;">All fixes re-verified against a fresh full rebuild: safety nets still clean, round-2's cross-join fix still holds, <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">rank_new.py</code> unaffected, and the sent count reconciles exactly (17 + 4 orphaned = 21, matching the log precisely) for the first time this round.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" id="step-10">
+        <div class="num">10</div>
+        <div class="step-body">
+          <h3>Keep it current</h3>
+          <div class="step-layout">
+            <div class="step-main">
+              <p class="why">This folder is mid-run, not archival — five-plus batches in, more coming. The last thing this needed was a person remembering to re-run three scripts by hand after every session. <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">career_index/maintenance.py</code> is the one command: re-index (step 6, upsert-safe) then refresh the outreach gap report (step 9). Deliberately <em>not</em> <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">rank_new.py</code> — that needs a fresh scrape as input, not something to fire blindly on a timer.</p>
+              <p class="why">Wired to the actual moment that matters, not a schedule: <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">Career RAG.command</code> — double-click to open the query interface as its own window, close that window (the red button) to run maintenance automatically. Nothing to remember.</p>
+              <div class="code-label">Career RAG.command — the real mechanism, found out the hard way</div>
+              <pre><code># Chrome's --app mode does NOT quit when its last window closes --
+# confirmed live: it keeps running with zero windows, forever.
+# open -W (wait for exit) would never return. So this polls instead:
+
+open -n -a Chrome --args --app=$URL --user-data-dir=$PROFILE_DIR
+CHROME_PID=$(pgrep -f "Chrome --app=$URL --user-data-dir=$PROFILE_DIR")
+
+while kill -0 "$CHROME_PID" 2>/dev/null; do
+    sleep 2
+    WIN_COUNT=$(osascript -e '... count windows ...')
+    [ "$WIN_COUNT" = "0" ] && break
+done
+kill "$CHROME_PID"              # force-quit the lingering process
+.venv/bin/python maintenance.py  # step 10, on close</code></pre>
+              <p class="why">A unique <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">--user-data-dir</code> per launch means the PID match can never confuse this window with any other Chrome window already open on the machine — verified by starting a second, unrelated Chrome instance mid-test and confirming the watcher only ever tracked its own.</p>
+            </div>
+            <aside class="step-visual" aria-label="Launcher tested end to end with a real window close">
+              <span class="sv-label">Live run — real window, real close</span>
+              <span class="sv-figure">11.8<span style="font-size:16px;">s</span> <span style="font-size:13px;color:var(--ink-faint);font-family:'IBM Plex Sans';">from close to done</span></span>
+              <div class="sv-legend">
+                <div class="row"><span class="lbl">Window close detected</span><span class="val">~2s</span></div>
+                <div class="row"><span class="lbl">Server + Chrome cleaned up</span><span class="val">✓</span></div>
+                <div class="row"><span class="lbl">Maintenance ran</span><span class="val">✓</span></div>
+              </div>
+              <div class="sv-note">Also tested: launching against an already-running server correctly reuses it instead of starting a duplicate.</div>
+            </aside>
+          </div>
+          <div class="callout danger">
+            <span class="mark">audited — round 5</span>
+            <div class="body">
+              Two more agents tested the launcher and <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">store.py</code> directly against a real running window — one found the pipeline itself completely clean after all four prior rounds' fixes; the other found three real edges in the newest code:
+              <ul style="margin:10px 0 0; padding-left:18px; display:flex; flex-direction:column; gap:6px;">
+                <li><strong>The window-close detector could misfire on a transient AppleScript error.</strong> Confirmed live: repeated <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">osascript</code> calls against a real, still-open window intermittently threw <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">Invalid index</code> errors — the original version treated that empty result identically to a confirmed zero-window count, risking a premature force-kill mid-session. Fixed: an error/empty reading no longer counts as evidence of anything, and a real zero has to show up on two consecutive polls before it's trusted. Reproduced the exact flakiness re-testing the fix — one poll errored, the debounce absorbed it, the next real closure was still caught correctly.</li>
+                <li><strong><code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">Career RAG.command</code> never checked whether maintenance actually succeeded</strong> — a crashed run still printed "Done." Fixed to check the exit code and say so if it failed.</li>
+                <li><strong><code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">store.py</code>'s batched upsert had no failure handling</strong> — if a later batch failed, earlier batches were already written to disk with nothing telling you the store was now incomplete. Not silent (the exception still propagates), but unhelpful. Fixed with a clear message: upsert overwrites by id, so re-running ingest is always the safe recovery, and now it says so.</li>
+              </ul>
+              <p style="margin:10px 0 0;">Also confirmed clean by direct testing: the launcher's PID-matching (via each launch's unique <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">--user-data-dir</code>) never touched the user's own regular, already-open Chrome — tested side by side with a live, many-tab Chrome window throughout.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="callout teal">
+      <span class="mark">done — 10/10</span>
+      <div class="body">Every step built and verified against the real folder, audited across five rounds of independent review. Run <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">Career RAG.command</code> in <code style="background:var(--bg-raised);border:1px solid var(--line);border-radius:4px;padding:0.1em 0.4em;">/Users/caesar/Desktop/Personal/jobs ai search program/</code> to start searching.</div>
+    </div>
+
+  </main>
+
+  <footer>
+    <span>Career RAG Pipeline — build guide</span>
+    <span>Chroma · bge-small (local, free) · vibatchium</span>
+  </footer>
+
+</div>

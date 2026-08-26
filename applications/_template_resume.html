@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resume</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  :root {
+    --navy: #0d1b2a;
+    --blue: #1b3a5c;
+    --accent: #1a73b5;
+    --light: #f4f7fb;
+    --mid: #dde4ed;
+    --text: #1a1a2e;
+    --muted: #5a6a7e;
+    --rule: #c8d4e3;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #e8ecf0;
+    color: var(--text);
+    font-size: 9.5pt;
+    line-height: 1.5;
+  }
+
+  .page {
+    background: white;
+    max-width: 800px;
+    margin: 32px auto;
+    padding: 40px 48px;
+    box-shadow: 0 4px 40px rgba(0,0,0,0.14);
+  }
+
+  /* HEADER */
+  .header { margin-bottom: 16px; }
+  .header-name {
+    font-size: 26pt;
+    font-weight: 800;
+    color: var(--navy);
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+  }
+  .header-tagline {
+    font-size: 10pt;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.3px;
+    margin-top: 4px;
+    text-transform: uppercase;
+  }
+  .header-contact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    margin-top: 10px;
+    font-size: 8.5pt;
+    color: var(--muted);
+  }
+  .header-contact a { color: var(--accent); text-decoration: none; }
+
+  /* CREDENTIALS BAR */
+  .cred-bar {
+    background: var(--navy);
+    color: white;
+    border-radius: 6px;
+    padding: 8px 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 20px;
+    margin-bottom: 16px;
+    font-size: 8pt;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+  .cred-item { display: flex; align-items: center; gap: 6px; }
+  .cred-item::before { content: "▪"; color: #4a9fd4; }
+
+  /* SECTION */
+  .section { margin-bottom: 13px; }
+  .section-title {
+    font-size: 7.5pt;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--accent);
+    padding-bottom: 5px;
+    border-bottom: 1.5px solid var(--accent);
+    margin-bottom: 10px;
+  }
+
+  /* PROFILE */
+  .profile {
+    font-size: 9.5pt;
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* COMPETENCIES */
+  .comp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+  .comp-block { }
+  .comp-label {
+    font-size: 7.5pt;
+    font-weight: 700;
+    color: var(--navy);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 3px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .comp-label::before { content: ""; display: block; width: 3px; height: 10px; background: var(--accent); border-radius: 2px; }
+  .comp-list {
+    list-style: none;
+    font-size: 8.5pt;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* EXPERIENCE */
+  .job { margin-bottom: 9px; page-break-inside: avoid; break-inside: avoid; }
+  .job-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 1px;
+  }
+  .job-title {
+    font-size: 10pt;
+    font-weight: 700;
+    color: var(--navy);
+    line-height: 1.3;
+  }
+  .job-dates {
+    font-size: 8pt;
+    color: var(--muted);
+    white-space: nowrap;
+    font-weight: 500;
+    padding-top: 1px;
+  }
+  .job-company {
+    font-size: 8.5pt;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 5px;
+  }
+  .job-company .location {
+    font-weight: 400;
+    color: var(--muted);
+    margin-left: 6px;
+  }
+  .job-bullets {
+    list-style: none;
+    margin-top: 4px;
+  }
+  .job-bullets li {
+    font-size: 8.7pt;
+    color: var(--text);
+    padding: 1.5px 0 1.5px 14px;
+    position: relative;
+    line-height: 1.42;
+  }
+  .job-bullets li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .job-bullets li strong { color: var(--navy); font-weight: 600; }
+
+  .earlier {
+    background: var(--light);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-top: 4px;
+  }
+  .earlier-title {
+    font-size: 8pt;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .earlier-items {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 20px;
+  }
+  .earlier-item {
+    font-size: 8.5pt;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  .earlier-item strong { color: var(--navy); font-weight: 600; }
+
+  /* EDUCATION & CERTS */
+  .edu-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 24px;
+  }
+  .edu-item { }
+  .edu-degree {
+    font-size: 9pt;
+    font-weight: 700;
+    color: var(--navy);
+    line-height: 1.3;
+  }
+  .edu-school {
+    font-size: 8.5pt;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+  .edu-detail {
+    font-size: 8pt;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .cert-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .cert-tag {
+    background: var(--navy);
+    color: white;
+    font-size: 7.5pt;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.2px;
+  }
+  .cert-tag.highlight { background: var(--accent); }
+
+  /* DIVIDER */
+  .divider { border: none; border-top: 1px solid var(--rule); margin: 14px 0; }
+
+  /* PRINT */
+  @media print {
+    body { background: white; font-size: 9pt; }
+    .page { margin: 0; padding: 36px 44px; box-shadow: none; max-width: 100%; }
+    .header-name { font-size: 22pt; }
+    a { color: inherit; text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- ============================================================
+       ONE-TIME SETUP (do this once, before your first application):
+       Replace every ALL-CAPS "YOUR ..." marker and every example job /
+       education / cert block below with your own real history, taken
+       from your master resume. The {{DOUBLE_BRACE}} slots are DIFFERENT:
+       leave those alone - tailor.py fills them per-job so each
+       application gets a resume tuned to that posting.
+       ============================================================ -->
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-name">YOUR NAME</div>
+    <div class="header-tagline">{{TAGLINE}}</div>
+    <div class="header-contact">
+      <span>YOUR CITY</span>
+      <span>YOUR PHONE</span>
+      <a href="mailto:you@example.com">you@example.com</a>
+      <a href="https://www.linkedin.com/in/your-handle/" target="_blank">linkedin.com/in/your-handle</a>
+    </div>
+  </div>
+
+  <!-- CREDENTIALS BAR: 2 fixed credentials (degrees/certs) + 2 per-job slots -->
+  <div class="cred-bar">
+    <div class="cred-item">{{CRED_ROLE}}</div>
+    <div class="cred-item">YOUR DEGREE OR KEY CREDENTIAL</div>
+    <div class="cred-item">YOUR SECOND DEGREE OR CREDENTIAL</div>
+    <div class="cred-item">{{CRED_STACK}}</div>
+  </div>
+
+  <!-- PROFILE (filled per-job) -->
+  <div class="section">
+    <div class="section-title">Profile</div>
+    <div class="profile">{{PROFILE}}</div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- COMPETENCIES (filled per-job) -->
+  <div class="section">
+    <div class="section-title">Core Competencies</div>
+    <div class="comp-grid">
+      <div class="comp-block">
+        <div class="comp-label">{{COMP1_LABEL}}</div>
+        <ul class="comp-list">
+          {{COMP1_ITEMS}}
+        </ul>
+      </div>
+      <div class="comp-block">
+        <div class="comp-label">{{COMP2_LABEL}}</div>
+        <ul class="comp-list">
+          {{COMP2_ITEMS}}
+        </ul>
+      </div>
+      <div class="comp-block">
+        <div class="comp-label">{{COMP3_LABEL}}</div>
+        <ul class="comp-list">
+          {{COMP3_ITEMS}}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- EXPERIENCE -->
+  <div class="section">
+    <div class="section-title">Professional Experience</div>
+
+    <!-- CURRENT / MOST RECENT ROLE: the bullets here are filled per-job
+         by tailor.py, so your most recent role is always angled at the
+         posting. Fill in the title/dates/company yourself. -->
+    <div class="job">
+      <div class="job-header">
+        <div class="job-title">YOUR CURRENT JOB TITLE</div>
+        <div class="job-dates">START to Present</div>
+      </div>
+      <div class="job-company">YOUR CURRENT COMPANY<span class="location">CITY</span></div>
+      <ul class="job-bullets">
+        {{CURRENT_ROLE_BULLETS}}
+      </ul>
+    </div>
+
+    <!-- EARLIER ROLES: copy this block once per past job. Fixed content -
+         write your strongest 1-3 bullets per role. -->
+    <div class="job">
+      <div class="job-header">
+        <div class="job-title">PREVIOUS JOB TITLE</div>
+        <div class="job-dates">START to END</div>
+      </div>
+      <div class="job-company">PREVIOUS COMPANY<span class="location">CITY</span></div>
+      <ul class="job-bullets">
+        <li>What you delivered, with scale and outcome. Bold the impressive parts with <strong>strong tags</strong>.</li>
+        <li>Second achievement bullet.</li>
+      </ul>
+    </div>
+
+    <!-- OLDER EXPERIENCE, compressed two-column block. Optional - delete
+         if you don't need it. -->
+    <div class="earlier">
+      <div class="earlier-title">Earlier Experience</div>
+      <div class="earlier-items">
+        <div class="earlier-item"><strong>ROLE, COMPANY</strong>, YEARS, one-line summary of what you did.</div>
+        <div class="earlier-item"><strong>ROLE, COMPANY</strong>, YEARS, one-line summary of what you did.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- EDUCATION -->
+  <div class="section">
+    <div class="section-title">Education</div>
+    <div class="edu-grid">
+      <div class="edu-item">
+        <div class="edu-degree">YOUR DEGREE</div>
+        <div class="edu-school">YOUR UNIVERSITY</div>
+        <div class="edu-detail">YEARS</div>
+      </div>
+      <div class="edu-item">
+        <div class="edu-degree">SECOND DEGREE (or delete this block)</div>
+        <div class="edu-school">UNIVERSITY</div>
+        <div class="edu-detail">YEARS</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- CERTIFICATIONS -->
+  <div class="section">
+    <div class="section-title">Certifications &amp; Industry Engagement</div>
+    <div class="cert-row">
+      <span class="cert-tag highlight">YOUR HEADLINE CERT OR MEMBERSHIP</span>
+      <span class="cert-tag">ANOTHER CERT</span>
+      <span class="cert-tag">ANOTHER CERT (add/remove tags freely)</span>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

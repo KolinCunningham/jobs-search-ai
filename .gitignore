@@ -1,0 +1,31 @@
+# ---- personal data: never committed ----
+profile/*
+!profile/README.md
+!profile/config.example.json
+
+# real application folders + logs (templates, tailor.py, READMEs stay)
+applications/*/
+applications/_tracker.md
+applications/_ats_credentials*
+applications/_outreach_log.md
+applications/_report_*.md
+applications/_agent_brief*.md
+applications/_run_brief*.md
+applications/_submit_brief*.md
+applications/_batch*.md
+
+# generated reports / run artifacts
+new_matches.md
+outreach_gaps.md
+LOG.md
+RESUME_HERE.md
+
+# ---- pipeline build artifacts ----
+career_index/.venv/
+career_index/__pycache__/
+career_index/store/
+career_index/search_history.json
+career_index/new_postings*.json
+
+# ---- OS noise ----
+.DS_Store
