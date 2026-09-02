@@ -146,6 +146,7 @@ PAGE = """
 <body>
 <div class="topnav">
   <a href="/" class="navlink active">Search</a>
+  <a href="/applied" class="navlink">Applied</a>
   <a href="/browse" class="navlink">Browse</a>
   <a href="/memory" class="navlink">Memory</a>
   <a href="/how-to" class="navlink">How to use this</a>
@@ -294,6 +295,117 @@ PAGE = """
 
 HOWTO_STYLE = PAGE[PAGE.index("<style>"):PAGE.index("</style>") + len("</style>")]
 
+APPLIED_PAGE = """
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Career RAG — Applied</title>
+""" + HOWTO_STYLE + """
+<style>
+  .ap-controls{ display:flex; flex-direction:row; gap:8px; align-items:center;
+                flex-wrap:wrap; margin-bottom:16px; }
+  /* .chip and .doc live in the Browse template's own style block, so they
+     have to be declared here too or these render as plain browser links. */
+  .chip{ padding:5px 12px; border:1px solid var(--line); border-radius:99px; color:var(--soft);
+         text-decoration:none; font-size:12.5px; }
+  .chip.on{ border-color:var(--teal); color:var(--teal); }
+  .doc{ display:inline-block; margin:2px 6px 2px 0; padding:2px 9px; border-radius:4px;
+        border:1px solid var(--line); color:var(--soft); text-decoration:none; font-size:11.5px;
+        font-family:ui-monospace,monospace; white-space:nowrap; }
+  .doc:hover{ border-color:var(--teal); color:var(--teal); }
+  .doc.resume{ border-color:#2d4a63; }
+  .doc.cover{ border-color:#4a3d63; }
+  .ap-controls input{ flex:1; min-width:180px; }
+  table.applied{ width:100%; border-collapse:collapse; }
+  table.applied th{ text-align:left; font-size:11px; text-transform:uppercase;
+                    letter-spacing:.05em; color:var(--faint); font-weight:600;
+                    padding:0 8px 8px; border-bottom:1px solid var(--line); }
+  table.applied td{ border-bottom:1px solid var(--line); padding:11px 8px; vertical-align:top; }
+  table.applied tr:hover td{ background:rgba(255,255,255,.02); }
+  .ap-n{ color:var(--faint); font-family:ui-monospace,monospace; font-size:12px; }
+  .ap-co{ font-weight:600; }
+  .ap-role{ color:var(--soft); font-size:12.5px; }
+  .ap-batch{ color:var(--faint); font-size:11px; font-family:ui-monospace,monospace; }
+  .ap-reach{ display:inline-block; font-size:11px; font-family:ui-monospace,monospace;
+             padding:2px 8px; border-radius:99px; border:1px solid var(--line); white-space:nowrap; }
+  .ap-reach.sent{ color:var(--teal); border-color:var(--teal); }
+  .ap-reach.drafted{ color:#e6a23c; border-color:#7a5a25; }
+  .ap-reach.none{ color:var(--faint); }
+  .ap-contact{ font-size:12.5px; }
+  .ap-channel{ color:var(--faint); font-size:11px; font-family:ui-monospace,monospace; }
+  details.ap-msg{ margin-top:6px; }
+  details.ap-msg summary{ cursor:pointer; color:var(--soft); font-size:11.5px; }
+  details.ap-msg p{ margin:6px 0 0; color:var(--soft); font-size:12.5px; line-height:1.6;
+                    background:var(--bg); border:1px solid var(--line); border-radius:6px;
+                    padding:9px 11px; white-space:pre-wrap; }
+</style>
+</head>
+<body>
+<div class="topnav">
+  <a href="/" class="navlink">Search</a>
+  <a href="/applied" class="navlink active">Applied</a>
+  <a href="/browse" class="navlink">Browse</a>
+  <a href="/memory" class="navlink">Memory</a>
+  <a href="/how-to" class="navlink">How to use this</a>
+  <a href="http://127.0.0.1:5058/" class="navlink" target="_blank" rel="noopener">Live wall &#8599;</a>
+  <a href="/claude" class="navlink">Claude</a>
+</div>
+<div class="wrap">
+  <h1>Everything applied for, in order</h1>
+  <p class="sub">{{ counts.all }} applications, ordered as <code>_tracker.md</code> records them.
+     {{ counts.sent }} had outreach actually sent, {{ counts.gap }} did not. Only rows from
+     submission tables are listed; the tracker's shortlist and skipped tables are not
+     applications and are left out.</p>
+
+  <form class="ap-controls" method="get" action="/applied">
+    <input type="text" name="q" value="{{ q }}" placeholder="filter by company, role or contact">
+    <input type="hidden" name="reach" value="{{ reach }}">
+    <button type="submit">Filter</button>
+    <a class="chip {{ 'on' if not reach }}" href="/applied?q={{ q|urlencode }}">all</a>
+    <a class="chip {{ 'on' if reach=='sent' }}" href="/applied?reach=sent&q={{ q|urlencode }}">outreach sent</a>
+    <a class="chip {{ 'on' if reach=='gap' }}" href="/applied?reach=gap&q={{ q|urlencode }}">no send yet</a>
+  </form>
+
+  <table class="applied">
+    <tr>
+      <th style="width:26%">Role</th>
+      <th style="width:13%">Applied via</th>
+      <th style="width:17%">Documents</th>
+      <th>Outreach</th>
+    </tr>
+    {% for r in rows %}
+    <tr>
+      <td>
+        <div><span class="ap-n">{{ r.n }}.</span> <span class="ap-co">{{ r.company }}</span></div>
+        <div class="ap-role">{{ r.role }}</div>
+        <div class="ap-batch">{{ r.batch }}</div>
+      </td>
+      <td><div class="ap-role">{{ r.platform or '-' }}</div></td>
+      <td>
+        {% if r.cover %}<a class="doc cover" href="/open?path={{ r.cover|urlencode }}" target="_blank" rel="noopener">cover letter</a>{% endif %}
+        {% if r.resume %}<a class="doc resume" href="/open?path={{ r.resume|urlencode }}" target="_blank" rel="noopener">resume</a>{% endif %}
+        {% if not r.cover and not r.resume %}<span class="ap-batch">none on disk</span>{% endif %}
+      </td>
+      <td>
+        <span class="ap-reach {{ 'sent' if r.reach=='sent' else ('drafted' if r.reach.startswith('drafted') else 'none') }}">{{ r.reach }}</span>
+        {% if r.contact %}<div class="ap-contact" style="margin-top:5px">{{ r.contact }}</div>{% endif %}
+        {% if r.channel %}<div class="ap-channel">{{ r.channel }}</div>{% endif %}
+        {% if r.sent_note and r.sent_note|lower != 'sent' %}<div class="ap-channel">{{ r.sent_note }}</div>{% endif %}
+        {% if r.message %}
+        <details class="ap-msg"><summary>message</summary><p>{{ r.message }}</p></details>
+        {% endif %}
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="4" class="ap-batch">Nothing matches that filter.</td></tr>
+    {% endfor %}
+  </table>
+</div>
+</body>
+</html>
+"""
+
 BROWSE_PAGE = """
 <!doctype html>
 <html>
@@ -384,6 +496,7 @@ HOWTO_PAGE = """
 <body>
 <div class="topnav">
   <a href="/" class="navlink">Search</a>
+  <a href="/applied" class="navlink">Applied</a>
   <a href="/browse" class="navlink">Browse</a>
   <a href="/memory" class="navlink">Memory</a>
   <a href="/how-to" class="navlink active">How to use this</a>
@@ -749,6 +862,7 @@ CLAUDE_PAGE = """
 <body>
 <div class="topnav">
   <a href="/" class="navlink">Search</a>
+  <a href="/applied" class="navlink">Applied</a>
   <a href="/browse" class="navlink">Browse</a>
   <a href="/memory" class="navlink">Memory</a>
   <a href="/how-to" class="navlink">How to use this</a>
@@ -819,6 +933,183 @@ def claude_page():
     else:
         content = f"CLAUDE.md not found at {CLAUDE_MD_PATH} -- nothing to show yet."
     return render_template_string(CLAUDE_PAGE, content=content)
+
+
+# Tables in _tracker.md do not share a layout, and only some of them are
+# submissions -- the rest are shortlists, skip lists and blocked lists. The
+# row's own columns say which: a submission row carries Materials or a
+# confirmation/status column. Never assume a row is an application.
+_APPLIED_COLS = ("Materials", "Confirmation seen", "Status", "Salary asked")
+_SENT_RE = re.compile(r"^sent\b", re.IGNORECASE)
+
+
+def _outreach_detail(folder_path):
+    """Contact, channel and message text out of one outreach.md.
+
+    The drafts are not uniformly formatted (some open `Subject:`, some carry
+    `## LinkedIn note` and `## Message` headings, some only a contact block),
+    so every field is reported as found or left blank. Nothing is inferred.
+    """
+    path = folder_path / "outreach.md"
+    out = {"contact": "", "channel": "", "message": "", "has_draft": False}
+    if not path.is_file():
+        return out
+    try:
+        text = path.read_text(errors="replace")
+    except OSError:
+        return out
+    if re.search(r"\bpassword\b", text, re.IGNORECASE):
+        return out                      # same guard as everywhere else
+    out["has_draft"] = len(text.strip()) >= 20
+
+    channels = []
+    if re.search(r"^Subject:", text, re.MULTILINE):
+        channels.append("email / InMail")
+    if re.search(r"^##\s*LinkedIn note", text, re.MULTILINE | re.IGNORECASE):
+        channels.append("LinkedIn connection note")
+    if re.search(r"^##\s*(Message|Direct message|DM)\b", text, re.MULTILINE | re.IGNORECASE):
+        channels.append("LinkedIn DM")
+    rec = re.search(r"Recommended channel:\s*(.+)", text)
+    if not channels and rec:
+        channels.append(rec.group(1).strip().rstrip(",.").split(",")[0])
+    out["channel"] = ", ".join(channels)
+
+    m = re.search(r"^##\s*Contact\s*$(.+?)(?=^##\s|\Z)", text,
+                  re.MULTILINE | re.DOTALL)
+    if m:
+        first = next((l.strip() for l in m.group(1).splitlines() if l.strip()), "")
+        out["contact"] = first[:160]
+
+    body = None
+    for pat in (r"^##\s*(?:Message|Direct message|DM)\b[^\n]*\n(.+?)(?=^##\s|\Z)",
+                r"^##\s*LinkedIn note[^\n]*\n(.+?)(?=^##\s|\Z)"):
+        m = re.search(pat, text, re.MULTILINE | re.DOTALL)
+        if m:
+            body = m.group(1)
+            break
+    if body is None and text.lstrip().startswith("Subject:"):
+        body = text
+    if body:
+        out["message"] = " ".join(body.split())[:1200]
+    return out
+
+
+def applied_rows():
+    """Every application, in the order _tracker.md records it.
+
+    The tracker is the record of what was actually sent, so it drives both
+    the list and its order; folders, cover letters and outreach drafts are
+    joined onto it. Sent-vs-drafted comes from outreach_gaps, which already
+    handles the company-name matching and its known near-miss cases.
+    """
+    import meta as _meta
+    import outreach_gaps as _og
+    try:
+        folder_index = _meta.build_folder_index()
+    except Exception:
+        folder_index = {}
+    try:
+        cats = _og.build_report()
+        sent_by_folder = {f: status for _c, f, status in cats.get("sent", [])}
+    except Exception:
+        sent_by_folder = {}
+    # The earliest sends predate the per-application folders entirely, so a
+    # folder-keyed lookup alone reports them as "no outreach" when the log
+    # plainly says Sent. Fall back to the log's own company index.
+    try:
+        sent_by_company = _og._linkedin_sent_companies()
+    except Exception:
+        sent_by_company = {}
+
+    by_company = {}
+    for folder, info in folder_index.items():
+        c = _meta._norm(info.get("company") or folder)
+        by_company.setdefault(c, folder)
+
+    apps = lib.ROOT / "applications"
+    rows, seen = [], set()
+    for r in lib.tracker_rows():
+        if not any(c in r for c in _APPLIED_COLS):
+            continue
+        company = (r.get("Company") or "").strip()
+        role = (r.get("Role") or "").strip()
+        if not company or not role:
+            continue
+        company = re.sub(r"\*\*|`", "", company).strip()
+        role = re.sub(r"\*\*|`", "", role).strip()
+        dedup = (company.lower(), role.lower())
+        if dedup in seen:
+            continue
+        seen.add(dedup)
+
+        folder = by_company.get(_meta._norm(company))
+        fpath = apps / folder if folder else None
+        cover, resume = "", ""
+        if fpath and fpath.is_dir():
+            for f in sorted(fpath.iterdir()):
+                n = f.name.lower()
+                if f.suffix.lower() == ".pdf" and "cover" in n and not cover:
+                    cover = str(f.relative_to(lib.ROOT))
+                if f.suffix.lower() == ".pdf" and "resume" in n and not resume:
+                    resume = str(f.relative_to(lib.ROOT))
+        detail = _outreach_detail(fpath) if fpath else {
+            "contact": "", "channel": "", "message": "", "has_draft": False}
+
+        contact = detail["contact"]
+        if not contact and r.get("Hiring contact"):
+            contact = re.sub(r"\*\*|\[|\]\([^)]*\)", "", r["Hiring contact"]).strip()
+        # The drafts state an absent contact in prose ("No named contact
+        # found.", "None found, ..."). That is information for the draft, not
+        # a contact, so it is dropped and the tracker's hiring contact is
+        # used instead when there is one.
+        if re.match(r"(no named contact|none found|no contact)", contact, re.I):
+            contact = ""
+            if r.get("Hiring contact"):
+                contact = re.sub(r"\*\*|\[|\]\([^)]*\)", "", r["Hiring contact"]).strip()
+
+        status = sent_by_folder.get(folder or "", "")
+        if not status and sent_by_company:
+            hit = _og._best_match(_meta._norm(company), sent_by_company.keys())
+            if hit:
+                status = sent_by_company[hit]
+        if status:
+            reach = "sent" if _SENT_RE.match(status) else status
+        elif detail["has_draft"]:
+            reach = "drafted, not sent"
+        else:
+            reach = "no outreach"
+
+        rows.append({
+            "n": len(rows) + 1,
+            "batch": r.get("_section", ""),
+            "company": company, "role": role,
+            "platform": (r.get("Platform") or "").strip(),
+            "folder": folder or "", "cover": cover, "resume": resume,
+            "contact": contact, "channel": detail["channel"],
+            "message": detail["message"], "reach": reach,
+            "sent_note": status,
+        })
+    return rows
+
+
+@app.route("/applied")
+def do_applied():
+    all_rows = applied_rows()          # built once; the join behind it is not cheap
+    counts = {"all": len(all_rows),
+              "sent": sum(1 for r in all_rows if r["reach"] == "sent"),
+              "gap": sum(1 for r in all_rows if r["reach"] != "sent")}
+    rows = all_rows
+    term = (request.args.get("q") or "").strip().lower()
+    only = (request.args.get("reach") or "").strip()
+    if term:
+        rows = [r for r in rows if term in r["company"].lower()
+                or term in r["role"].lower() or term in r["contact"].lower()]
+    if only == "sent":
+        rows = [r for r in rows if r["reach"] == "sent"]
+    elif only == "gap":
+        rows = [r for r in rows if r["reach"] != "sent"]
+    return render_template_string(APPLIED_PAGE, rows=rows, q=term, reach=only,
+                                  total=len(rows), counts=counts, **_stats())
 
 
 def browse_rows():
