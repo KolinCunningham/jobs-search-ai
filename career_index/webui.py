@@ -1014,4 +1014,14 @@ if __name__ == "__main__":
     # and it closes off the whole class of races the third audit round found
     # (concurrent requests racing the Chroma client, corrupting history.json)
     # at the server level, on top of the fixes in store.py and save_history().
+    #
+    # threaded=True was tried and reverted. The history race is genuinely
+    # handled by _history_lock plus the atomic write, but the Chroma/model
+    # side is not: ten concurrent searches killed the process outright, no
+    # traceback, just a leaked semaphore at shutdown. Serializing the model
+    # load in embed.py (a real race, fixed and kept) was not enough. The cost
+    # of staying single-threaded is that a browser holding keep-alive
+    # connections can make a second request wait; that is the accepted
+    # trade, and running under a real WSGI server is the way out if it ever
+    # stops being acceptable.
     app.run(port=5057, debug=False, threaded=False)

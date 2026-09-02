@@ -12,6 +12,7 @@ last few points of retrieval quality Voyage/OpenAI would offer. One-time
 this machine. See career-rag-guide.html step 3 for the full reasoning.
 """
 
+import threading
 import time
 from pathlib import Path
 
@@ -20,15 +21,25 @@ import lib
 MODEL_NAME = "BAAI/bge-small-en-v1.5"
 
 _model = None
+_model_lock = threading.Lock()
 
 
 def get_model():
     """Load once, reuse. Constructing SentenceTransformer repeatedly is the
-    expensive part (loads weights); encode() calls after that are cheap."""
+    expensive part (loads weights); encode() calls after that are cheap.
+
+    The load is locked because the plain `if _model is None` check is a
+    check-then-act race: under concurrent requests every thread saw None and
+    started its own load of the weights, which killed the process outright
+    (leaked semaphore, no traceback). Double-checked so the lock is only
+    contended on the very first call.
+    """
     global _model
     if _model is None:
-        from sentence_transformers import SentenceTransformer
-        _model = SentenceTransformer(MODEL_NAME)
+        with _model_lock:
+            if _model is None:
+                from sentence_transformers import SentenceTransformer
+                _model = SentenceTransformer(MODEL_NAME)
     return _model
 
 
