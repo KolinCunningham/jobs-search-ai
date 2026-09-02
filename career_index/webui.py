@@ -12,12 +12,15 @@ more batches get ingested. Search history persists to search_history.json
 (capped at 50) so it survives restarting this process.
 """
 
+import html
 import json
+import re
 import threading
 import time
 from pathlib import Path
 
-from flask import Flask, request, render_template_string, redirect, url_for, jsonify
+from flask import (Flask, request, render_template_string, redirect, url_for,
+                   jsonify, send_file, abort, Response)
 
 import lib
 import query as q
@@ -98,6 +101,8 @@ PAGE = """
   .results{ display:flex; flex-direction:column; gap:12px; }
   .card{ background:var(--raised); border:1px solid var(--line); border-radius:8px; padding:14px 16px; }
   .card .meta{ font-size:12px; color:var(--faint); font-family:ui-monospace,monospace; margin-bottom:6px; }
+  .card .meta a.doclink{ color:var(--soft); text-decoration:none; border-bottom:1px dotted var(--line); }
+  .card .meta a.doclink:hover{ color:var(--teal); border-bottom-color:var(--teal); }
   .card .score{ display:inline-block; background:var(--teal-tint); color:var(--teal); border-radius:4px; padding:1px 6px; font-size:11px; margin-right:8px; font-family:ui-monospace,monospace; }
   .card .tags{ display:inline; color:var(--soft); font-size:12.5px; }
   .card p{ margin:6px 0 0; font-size:13.5px; color:var(--ink); line-height:1.5; }
@@ -209,7 +214,12 @@ PAGE = """
         {% if results %}
           {% for r in results %}
           <div class="card">
-            <div class="meta">{{ r.meta.get('path') }} &middot; {{ r.meta.get('doc_type') }}</div>
+            <div class="meta">
+              {% if r.meta.get('path') %}
+                <a class="doclink" href="/open?path={{ r.meta.get('path')|urlencode }}" target="_blank" rel="noopener">{{ r.meta.get('path') }}</a>
+              {% endif %}
+              &middot; {{ r.meta.get('doc_type') }}
+            </div>
             <span class="score">{{ '%.3f'|format(r.score) }}</span>
             <span class="tags">
               {% for k in ['company','country','category','status'] %}
@@ -715,6 +725,69 @@ def claude_page():
     else:
         content = f"CLAUDE.md not found at {CLAUDE_MD_PATH} -- nothing to show yet."
     return render_template_string(CLAUDE_PAGE, content=content)
+
+
+def _refused(rel, why):
+    """Say why a document will not be opened, rather than a bare 403.
+
+    The guard is the point, but a silent 403 looks like a broken link.
+    """
+    body = (
+        "<!doctype html><meta charset='utf-8'>"
+        "<title>Not shown</title>"
+        "<body style=\"background:#0d1117;color:#c9d1d9;"
+        "font:14px/1.6 ui-monospace,monospace;padding:40px;max-width:640px\">"
+        f"<h2 style='color:#e6a23c;margin:0 0 12px'>Not shown</h2>"
+        f"<p style='margin:0 0 10px'><code>{html.escape(rel)}</code></p>"
+        f"<p style='margin:0 0 10px'>This file is not served because {html.escape(why)}.</p>"
+        "<p style='color:#8b949e;margin:0'>Open it directly on disk if you need it. "
+        "The pipeline refuses to render credentials or anything mentioning a "
+        "password, on purpose.</p></body>"
+    )
+    return Response(body, status=403, mimetype="text/html; charset=utf-8")
+
+
+@app.route("/open")
+def open_document():
+    """Serve one indexed document so a search result can be clicked through.
+
+    A `file://` link cannot work here: the browser refuses to follow one from
+    an http:// page, silently, so the path has to come back through this
+    server instead.
+
+    This reads arbitrary paths off disk, so it is deliberately narrow:
+    the resolved path must sit inside the project root (which stops
+    ../../ traversal and symlink escapes, since resolve() follows links),
+    the credential files are refused by name using the same pattern lib.py
+    excludes them with, and any text document mentioning a password is
+    refused rather than rendered.
+    """
+    rel = (request.args.get("path") or "").strip()
+    if not rel:
+        abort(404)
+    root = lib.ROOT.resolve()
+    try:
+        target = (root / rel).resolve()
+    except (OSError, ValueError):
+        abort(404)
+    if not target.is_relative_to(root) or not target.is_file():
+        abort(404)
+    if lib._CREDENTIALS_RE.match(target.name):
+        return _refused(rel, "it is a credentials file")
+
+    suffix = target.suffix.lower()
+    if suffix in (".md", ".json", ".txt", ".csv"):
+        try:
+            text = target.read_text(errors="replace")
+        except OSError:
+            abort(404)
+        if re.search(r"\bpassword\b", text, re.IGNORECASE):
+            return _refused(rel, "it contains the word \u201cpassword\u201d")
+        return Response(text, mimetype="text/plain; charset=utf-8")
+    if suffix in (".html", ".htm", ".pdf", ".png", ".jpg", ".jpeg", ".gif", ".svg"):
+        return send_file(str(target))
+    return _refused(rel, f"{suffix or 'this file type'} is not a document type "
+                         "this viewer renders")
 
 
 @app.route("/api/graph")
