@@ -71,9 +71,9 @@ PAGE = """
 <meta charset="utf-8">
 <title>Career RAG — Query</title>
 <style>
-  /* Same tokens as Engram's own dashboard/viz UI (/Users/caesar/Desktop/engram
-     crates/engram-http/src/{viz,dashboard}.html) -- read directly from its
-     source, not approximated. Engram itself has no light mode, so neither
+  /* Same tokens as Engram's own dashboard/viz UI
+     (crates/engram-http/src/{viz,dashboard}.html in the engram repo) -- read
+     directly from its source, not approximated. Engram itself has no light mode, so neither
      does this: one fixed dark palette, not a prefers-color-scheme toggle. */
   :root{
     --bg:#0a0a0f; --raised:#0e0e18; --surface2:#1a1a2e; --ink:#c8c8d0; --soft:#999;
