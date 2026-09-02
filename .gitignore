@@ -25,7 +25,29 @@ career_index/.venv/
 career_index/__pycache__/
 career_index/store/
 career_index/search_history.json
-career_index/new_postings*.json
+career_index/*postings*.json
+
+# bot run artifacts (voice guides, playbooks, claims, batch lists)
+applications/_VOICE_GUIDE.md
+applications/_OUTREACH_PLAYBOOK.md
+applications/_claims_*.md
+applications/_outreach_log.md
+LA_job_search*.md
+
+# ---- top level is a whitelist ----
+# Only the project's own directories are shared. Anything else dropped at the
+# project root (portfolios, scratch folders, personal documents) stays local
+# without needing a rule per name.
+/*/
+!/applications/
+!/career_index/
+!/profile/
+
+# personal documents at the root; the guide is the one tracked HTML
+/*.pdf
+/*.docx
+/*.html
+!/career-rag-guide.html
 
 # ---- OS noise ----
 .DS_Store

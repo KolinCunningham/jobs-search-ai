@@ -34,6 +34,7 @@ live browser view) submit applications.
 | Script | What it does |
 |---|---|
 | `webui.py` | Local web UI at http://127.0.0.1:5057 — Search, Memory graph, How-to tabs |
+| `livewall.py` | Live job wall at http://127.0.0.1:5058 — every posting, score, tailored package and tracker row as it lands, with a per-card AI read |
 | `query.py` | CLI search + dedup check (`--company "X"` — has this company come up before, what happened) |
 | `rank_new.py` | Score a new posting against the resume, skip anything already tracked, record it as a searchable memory |
 | `outreach_gaps.py` | Who has a drafted LinkedIn message that was never actually sent |

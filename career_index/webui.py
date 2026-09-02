@@ -137,6 +137,7 @@ PAGE = """
   <a href="/" class="navlink active">Search</a>
   <a href="/memory" class="navlink">Memory</a>
   <a href="/how-to" class="navlink">How to use this</a>
+  <a href="http://127.0.0.1:5058/" class="navlink" target="_blank" rel="noopener">Live wall &#8599;</a>
   <a href="/claude" class="navlink">Claude</a>
 </div>
 <div class="shell">
@@ -403,6 +404,7 @@ MEMORY_PAGE = """
   <a href="/" class="navlink">Search</a>
   <a href="/memory" class="navlink active">Memory</a>
   <a href="/how-to" class="navlink">How to use this</a>
+  <a href="http://127.0.0.1:5058/" class="navlink" target="_blank" rel="noopener">Live wall &#8599;</a>
   <a href="/claude" class="navlink">Claude</a>
 </div>
 <div class="mem-head">
@@ -646,6 +648,7 @@ CLAUDE_PAGE = """
   <a href="/" class="navlink">Search</a>
   <a href="/memory" class="navlink">Memory</a>
   <a href="/how-to" class="navlink">How to use this</a>
+  <a href="http://127.0.0.1:5058/" class="navlink" target="_blank" rel="noopener">Live wall &#8599;</a>
   <a href="/claude" class="navlink active">Claude</a>
 </div>
 <div class="term-wrap">
