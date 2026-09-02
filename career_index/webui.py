@@ -100,6 +100,12 @@ PAGE = """
   .field{ display:flex; flex-direction:column; }
   .results{ display:flex; flex-direction:column; gap:12px; }
   .card{ background:var(--raised); border:1px solid var(--line); border-radius:8px; padding:14px 16px; }
+  .browse-cta{ display:block; margin:14px 0 18px; padding:13px 16px; border-radius:10px;
+               border:1px solid var(--line); background:var(--raised); text-decoration:none;
+               transition:border-color .12s ease; }
+  .browse-cta:hover{ border-color:var(--teal); }
+  .browse-cta-main{ display:block; color:var(--teal); font-weight:600; font-size:14px; margin-bottom:3px; }
+  .browse-cta-sub{ display:block; color:var(--soft); font-size:12.5px; line-height:1.55; }
   .card .meta{ font-size:12px; color:var(--faint); font-family:ui-monospace,monospace; margin-bottom:6px; }
   .card .meta a.doclink{ color:var(--soft); text-decoration:none; border-bottom:1px dotted var(--line); }
   .card .meta a.doclink:hover{ color:var(--teal); border-bottom-color:var(--teal); }
@@ -151,6 +157,12 @@ PAGE = """
     <div>
       <h1>Career RAG — Query</h1>
       <div class="sub">{{ chunk_count }} chunks, {{ folder_count }} application folders, running local + free on bge-small + Chroma. Nothing leaves this machine.</div>
+      <a class="browse-cta" href="/browse">
+        <span class="browse-cta-main">Browse every application &rarr;</span>
+        <span class="browse-cta-sub">Open the resume and cover letter that were actually sent, per company. Search below asks
+          <em>what did I say about X</em>; Browse just shows you the documents.</span>
+      </a>
+    </div>
     </div>
 
     <form method="get" action="/search">
