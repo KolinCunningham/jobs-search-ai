@@ -170,6 +170,12 @@ def collect_applications():
             continue
         assets = sorted(p.name for p in d.iterdir() if p.suffix.lower() in
                         (".pdf", ".html") and not p.name.startswith("_"))
+        # Newest of the spec and its rendered output. job.json alone misses a
+        # re-render: tailor.py rewrites the HTML and PDFs without touching the
+        # spec, so the package changes while job.json's mtime does not.
+        rendered = [p.stat().st_mtime for p in d.iterdir()
+                    if p.suffix.lower() in (".pdf", ".html")]
+        ts = max([jf.stat().st_mtime] + rendered)
         key = f"app::{d.name}"
         out[key] = _rec("application", key, job.get("company"),
                         job.get("role_short"),
@@ -179,7 +185,7 @@ def collect_applications():
                         has_notes=(d / "NOTES.md").is_file(),
                         has_outreach=(d / "outreach.md").is_file(),
                         desc=(job.get("p1") or "")[:900],
-                        ts=jf.stat().st_mtime)
+                        ts=ts)
     return out
 
 
@@ -443,7 +449,9 @@ class Wall:
             self.scans += 1
             self.last_scan = time.time()
             self.error = err
-        for rec in fresh:
+        # Newest first: the cards at the top of the wall are the ones being
+        # looked at, so they should get their read before the 2024 backlog.
+        for rec in reversed(fresh):
             self.narrator.submit(rec)
 
     def run(self):

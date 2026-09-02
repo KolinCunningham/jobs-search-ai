@@ -25,8 +25,9 @@ live browser view) submit applications.
 - `career_index/` — local, free, offline vector search over every application
   ever made, plus scoring of new postings against the resume. Every script
   runs from inside this folder via `.venv/bin/python <script>.py`.
-- `Career RAG.command` — double-click launcher for the web UI; closing the
-  window auto-runs maintenance.
+- `Career RAG.command` — double-click launcher; starts the query interface
+  (5057) and the live job wall (5058), and closing the window stops both and
+  auto-runs maintenance.
 - `career-rag-guide.html` — full technical writeup of the pipeline.
 
 ## The pipeline scripts (all run from `career_index/`)

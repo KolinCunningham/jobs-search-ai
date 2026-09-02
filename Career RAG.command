@@ -18,6 +18,8 @@ cd "$(dirname "$0")/career_index" || { echo "career_index/ not found next to thi
 
 PORT=5057
 URL="http://127.0.0.1:$PORT"
+WALL_PORT=5058
+WALL_URL="http://127.0.0.1:$WALL_PORT"
 CHROME="/Applications/Google Chrome.app"
 PROFILE_DIR="/tmp/career-rag-chrome-profile-$$"
 
@@ -28,6 +30,10 @@ fi
 
 already_running() {
   curl -s -o /dev/null -m 1 "$URL"
+}
+
+wall_running() {
+  curl -s -o /dev/null -m 1 "$WALL_URL"
 }
 
 STARTED_SERVER=0
@@ -46,6 +52,29 @@ else
   if ! already_running; then
     echo "Server didn't come up -- check /tmp/career_webui.log"
     exit 1
+  fi
+fi
+
+# The live wall is a second, independent server. It is a convenience, not a
+# requirement: if it fails to come up the query interface still works, so a
+# failure here warns and carries on rather than exiting.
+STARTED_WALL=0
+WALL_PID=""
+if wall_running; then
+  echo "Live wall already running at $WALL_URL -- reusing it."
+else
+  echo "Starting the live job wall..."
+  .venv/bin/python livewall.py > /tmp/career_livewall.log 2>&1 &
+  WALL_PID=$!
+  STARTED_WALL=1
+
+  for _ in $(seq 1 30); do
+    wall_running && break
+    sleep 0.3
+  done
+  if ! wall_running; then
+    echo "Live wall didn't come up -- check /tmp/career_livewall.log. Continuing without it."
+    STARTED_WALL=0
   fi
 fi
 
@@ -103,6 +132,10 @@ echo "Window closed. Running maintenance..."
 if [ "$STARTED_SERVER" = "1" ]; then
   kill "$WEBUI_PID" 2>/dev/null
   wait "$WEBUI_PID" 2>/dev/null
+fi
+if [ "$STARTED_WALL" = "1" ] && [ -n "$WALL_PID" ]; then
+  kill "$WALL_PID" 2>/dev/null
+  wait "$WALL_PID" 2>/dev/null
 fi
 
 # Fifth audit round: this used to always print "Done" regardless of what
