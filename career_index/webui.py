@@ -140,6 +140,7 @@ PAGE = """
 <body>
 <div class="topnav">
   <a href="/" class="navlink active">Search</a>
+  <a href="/browse" class="navlink">Browse</a>
   <a href="/memory" class="navlink">Memory</a>
   <a href="/how-to" class="navlink">How to use this</a>
   <a href="http://127.0.0.1:5058/" class="navlink" target="_blank" rel="noopener">Live wall &#8599;</a>
@@ -281,6 +282,85 @@ PAGE = """
 
 HOWTO_STYLE = PAGE[PAGE.index("<style>"):PAGE.index("</style>") + len("</style>")]
 
+BROWSE_PAGE = """
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Career RAG — Browse</title>
+""" + HOWTO_STYLE + """
+<style>
+  /* the base form rule is flex-direction:column, and not overriding it here
+     stacked these controls vertically and centred them. */
+  .browse-controls{ display:flex; flex-direction:row; gap:8px; align-items:center;
+                    flex-wrap:wrap; margin-bottom:16px; }
+  .chip{ padding:5px 12px; border:1px solid var(--line); border-radius:99px; color:var(--soft);
+         text-decoration:none; font-size:12.5px; }
+  .chip.on{ border-color:var(--teal); color:var(--teal); }
+  .browse-controls input{ flex:1; min-width:180px; }
+  table.browse{ width:100%; border-collapse:collapse; }
+  table.browse td{ border-bottom:1px solid var(--line); padding:9px 8px; vertical-align:top; }
+  table.browse tr:hover td{ background:rgba(255,255,255,.02); }
+  .b-co{ font-weight:600; }
+  .b-role{ color:var(--soft); font-size:12.5px; }
+  .b-status{ font-size:11px; color:var(--faint); font-family:ui-monospace,monospace; }
+  .doc{ display:inline-block; margin:2px 6px 2px 0; padding:2px 9px; border-radius:4px;
+        border:1px solid var(--line); color:var(--soft); text-decoration:none; font-size:11.5px;
+        font-family:ui-monospace,monospace; }
+  .doc:hover{ border-color:var(--teal); color:var(--teal); }
+  .doc.resume{ border-color:#2d4a63; }
+  .doc.cover{ border-color:#4a3d63; }
+</style>
+</head>
+<body>
+<div class="topnav">
+  <a href="/" class="navlink">Search</a>
+  <a href="/browse" class="navlink active">Browse</a>
+  <a href="/memory" class="navlink">Memory</a>
+  <a href="/how-to" class="navlink">How to use this</a>
+  <a href="http://127.0.0.1:5058/" class="navlink" target="_blank" rel="noopener">Live wall &#8599;</a>
+  <a href="/claude" class="navlink">Claude</a>
+</div>
+<div class="wrap">
+  <h1>Every application, and what was sent</h1>
+  <p class="sub">{{ total }} application folder{{ '' if total==1 else 's' }} on disk. Click any
+     document to open it. This list is read from the folders themselves, not the
+     index, so a folder appears whether or not its text was ever chunked.</p>
+
+  <form class="browse-controls" method="get" action="/browse">
+    <input type="text" name="q" value="{{ q }}" placeholder="filter by company, role or folder">
+    <input type="hidden" name="kind" value="{{ kind }}">
+    <button type="submit">Filter</button>
+    <a class="chip {{ 'on' if not kind }}" href="/browse?q={{ q|urlencode }}">everything</a>
+    <a class="chip {{ 'on' if kind=='resume' }}" href="/browse?kind=resume&q={{ q|urlencode }}">resumes</a>
+    <a class="chip {{ 'on' if kind=='cover' }}" href="/browse?kind=cover&q={{ q|urlencode }}">cover letters</a>
+  </form>
+
+  <table class="browse">
+    {% for r in rows %}
+    <tr>
+      <td style="width:32%">
+        <div class="b-co">{{ r.company }}</div>
+        <div class="b-role">{{ r.role }}</div>
+        <div class="b-status">{{ r.slug }}{% if r.status %} &middot; {{ r.status }}{% endif %}{% if r.platform %} &middot; {{ r.platform }}{% endif %}</div>
+      </td>
+      <td>
+        {% for d in r.docs %}
+          <a class="doc {{ d.kind }}" href="/open?path={{ d.rel|urlencode }}" target="_blank" rel="noopener">{{ d.kind }} &middot; {{ d.ext }}</a>
+        {% else %}
+          <span class="b-status">no documents</span>
+        {% endfor %}
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="2" class="b-status">Nothing matches that filter.</td></tr>
+    {% endfor %}
+  </table>
+</div>
+</body>
+</html>
+"""
+
 HOWTO_PAGE = """
 <!doctype html>
 <html>
@@ -292,6 +372,7 @@ HOWTO_PAGE = """
 <body>
 <div class="topnav">
   <a href="/" class="navlink">Search</a>
+  <a href="/browse" class="navlink">Browse</a>
   <a href="/memory" class="navlink">Memory</a>
   <a href="/how-to" class="navlink active">How to use this</a>
   <a href="/claude" class="navlink">Claude</a>
@@ -656,6 +737,7 @@ CLAUDE_PAGE = """
 <body>
 <div class="topnav">
   <a href="/" class="navlink">Search</a>
+  <a href="/browse" class="navlink">Browse</a>
   <a href="/memory" class="navlink">Memory</a>
   <a href="/how-to" class="navlink">How to use this</a>
   <a href="http://127.0.0.1:5058/" class="navlink" target="_blank" rel="noopener">Live wall &#8599;</a>
@@ -725,6 +807,68 @@ def claude_page():
     else:
         content = f"CLAUDE.md not found at {CLAUDE_MD_PATH} -- nothing to show yet."
     return render_template_string(CLAUDE_PAGE, content=content)
+
+
+def browse_rows():
+    """Every application folder on disk with the documents it actually holds.
+
+    Read from the filesystem rather than the vector store: a folder is real
+    whether or not its text made it into an indexed chunk, and only 129 of the
+    store's chunks carry a status, so a store-driven list would silently hide
+    most of the corpus.
+    """
+    import meta as _meta
+    try:
+        idx = _meta.build_folder_index()
+    except Exception:
+        idx = {}
+    apps = lib.ROOT / "applications"
+    rows = []
+    if not apps.is_dir():
+        return rows
+    for d in sorted(apps.iterdir(), key=lambda x: x.name.lower()):
+        if not d.is_dir() or d.name.startswith(("_", ".")) or d.name == "__pycache__":
+            continue
+        info = idx.get(d.name, {})
+        company = info.get("company") or d.name.split("_")[0]
+        role = info.get("role") or d.name.replace("_", " ")
+        docs = []
+        for f in sorted(d.iterdir(), key=lambda x: x.name.lower()):
+            if f.suffix.lower() not in (".html", ".pdf", ".md"):
+                continue
+            if f.name.startswith("_"):
+                continue
+            kind = ("cover" if "cover" in f.name.lower()
+                    else "resume" if "resume" in f.name.lower()
+                    else "notes" if f.suffix.lower() == ".md" else "other")
+            docs.append({"name": f.name, "kind": kind,
+                         "ext": f.suffix.lower().lstrip("."),
+                         "rel": str(f.relative_to(lib.ROOT))})
+        rows.append({
+            "slug": d.name, "company": company, "role": role,
+            "status": info.get("status") or "",
+            "platform": info.get("platform") or "",
+            "docs": docs,
+            "mtime": max([f.stat().st_mtime for f in d.iterdir()] or [0]),
+        })
+    return rows
+
+
+@app.route("/browse")
+def do_browse():
+    rows = browse_rows()
+    kind = (request.args.get("kind") or "").strip()
+    term = (request.args.get("q") or "").strip().lower()
+    if kind in ("resume", "cover"):
+        rows = [dict(r, docs=[d for d in r["docs"] if d["kind"] == kind])
+                for r in rows]
+        rows = [r for r in rows if r["docs"]]
+    if term:
+        rows = [r for r in rows
+                if term in r["company"].lower() or term in r["role"].lower()
+                or term in r["slug"].lower()]
+    return render_template_string(BROWSE_PAGE, rows=rows, kind=kind, q=term,
+                                  total=len(rows), **_stats())
 
 
 def _refused(rel, why):
